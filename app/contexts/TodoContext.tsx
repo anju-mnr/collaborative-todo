@@ -85,7 +85,6 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     return () => {
       if (isConnected && currentUser) {
         setState((prev) => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { [userId]: removed, ...users } = prev.users
           return {
             ...prev,
@@ -94,7 +93,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
         })
       }
     }
-  }, [])
+  }, [isConnected, currentUser, setState, userId])
 
   const addTask = useCallback((task: Omit<Task, "id" | "createdAt">) => {
     if (!currentUser) return
