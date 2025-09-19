@@ -38,13 +38,6 @@ This is a **collaborative task management web application** built with Next.js 1
 
 The app demonstrates real-time collaboration features with dummy data and provides a solid foundation that could easily be extended with actual backend services for true multi-user functionality.
 
-## Features
-
-- **Real-time Collaboration**: Multiple users can add, complete, and delete tasks simultaneously
-- **Live Presence**: See who's currently online with colored avatars
-- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
-- **Type Safety**: Built with TypeScript for robust development
-- **Modern UI**: Clean, minimal design with Tailwind CSS
 
 ## Tech Stack
 
