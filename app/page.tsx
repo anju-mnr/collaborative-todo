@@ -1,42 +1,47 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
+import { Copy, Users, UserPlus, ExternalLink } from "lucide-react"
 import { useTodo } from "@/app/contexts/TodoContext"
-import { generateUserColor, generateInitials, generateId } from "@/app/lib/utils"
+import { generateUserColor, generateInitials } from "@/app/lib/airstate"
 import { TaskList } from "@/app/components/TaskList"
 import { AddTaskForm } from "@/app/components/AddTaskForm"
 import { PresenceBar } from "@/app/components/PresenceBar"
 import { ConnectionStatus } from "@/app/components/ConnectionStatus"
-import { UserPlus } from "lucide-react"
 import type { User } from "@/app/types"
 
 export default function Home() {
   const [userName, setUserName] = useState<string>("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string>("")
-  const currentUserIdRef = useRef<string | null>(null)
+  const [linkCopied, setLinkCopied] = useState(false)
 
   const {
     state,
     isConnected,
     currentUser,
+    roomKey,
+    joinLink,
     addTask: addTaskToState,
     updateTask,
     deleteTask: deleteTaskFromState,
-    setUser,
-    removeUser,
     setCurrentUser,
   } = useTodo()
 
   const isJoined = currentUser !== null
+  const activeUsers = Object.values(state.users).filter(user => user.isActive)
 
-  useEffect(() => {
-    return () => {
-      if (currentUserIdRef.current) {
-        removeUser(currentUserIdRef.current)
-      }
-    }
-  }, [removeUser])
+  // Show connection status while syncing
+  if (!isConnected) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+          <p className="text-muted-foreground">Connecting to room...</p>
+        </div>
+      </div>
+    )
+  }
 
   const joinSession = async (name: string) => {
     const trimmedName = name.trim()
@@ -75,17 +80,15 @@ export default function Home() {
       await new Promise((resolve) => setTimeout(resolve, 500))
 
       const user: User = {
-        id: generateId(),
+        id: `user_${Math.random().toString(36).substr(2, 9)}`,
         name: trimmedName,
         color: generateUserColor(),
         initials: generateInitials(trimmedName),
         isActive: true,
-        lastSeen: new Date(),
+        lastSeen: new Date().toISOString(),
       }
 
       setCurrentUser(user)
-      currentUserIdRef.current = user.id
-      setUser(user.id, user)
     } catch {
       setError("Failed to join session. Please try again.")
     } finally {
@@ -95,11 +98,19 @@ export default function Home() {
 
   const logout = () => {
     if (currentUser) {
-      removeUser(currentUser.id)
       setCurrentUser(null)
-      currentUserIdRef.current = null
       setUserName("")
       setError("")
+    }
+  }
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(joinLink)
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2000)
+    } catch (e) {
+      console.error('Failed to copy link:', e)
     }
   }
 
@@ -213,6 +224,52 @@ export default function Home() {
             <div className="flex justify-center sm:justify-end">
               <PresenceBar users={Object.values(state.users)} currentUser={currentUser} onLogout={logout} />
             </div>
+          </div>
+
+          {/* Room Info & Sharing */}
+          <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Users className="w-4 h-4" />
+                <span>Room: {roomKey.slice(0, 8)}...</span>
+                <span>•</span>
+                <span>{activeUsers.length} active {activeUsers.length === 1 ? 'user' : 'users'}</span>
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <input
+                readOnly
+                value={joinLink}
+                className="flex-1 px-3 py-2 text-sm bg-background border border-input rounded-md"
+                placeholder="Room link"
+              />
+              <button
+                onClick={copyLink}
+                className="px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2"
+              >
+                {linkCopied ? (
+                  <>
+                    <span className="text-xs">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={14} />
+                    <span className="text-xs hidden sm:inline">Copy</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => window.open(joinLink, '_blank')}
+                className="px-3 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
+              >
+                <ExternalLink size={14} />
+              </button>
+            </div>
+            
+            <p className="text-xs text-muted-foreground">
+              Share this link with others to collaborate on tasks together
+            </p>
           </div>
 
           <AddTaskForm onAddTask={addTask} />
