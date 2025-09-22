@@ -3,7 +3,7 @@ export interface Task {
   text: string
   description?: string
   completed: boolean
-  createdAt: Date
+  createdAt: string // ISO string instead of Date object
   createdBy: string
 }
 
@@ -12,11 +12,12 @@ export interface User {
   name: string
   color: string
   isActive: boolean
-  lastSeen: Date
+  lastSeen: string // ISO string instead of Date object
   initials?: string
 }
 
 export interface SharedState {
   tasks: Task[]
   users: Record<string, User>
+  [key: string]: any // Index signature for Airstate compatibility
 }

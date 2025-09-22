@@ -16,14 +16,14 @@ class MockRealtimeClient {
           id: "1",
           text: "Welcome to your collaborative to-do list!",
           completed: false,
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
           createdBy: "system",
         },
         {
           id: "2",
           text: "Add your first task below",
           completed: false,
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
           createdBy: "system",
         },
       ],
@@ -54,7 +54,7 @@ class MockRealtimeClient {
     const newTask: Task = {
       ...task,
       id: generateId(),
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     }
     this.setState({
       tasks: [...this.state.tasks, newTask],
@@ -84,8 +84,7 @@ class MockRealtimeClient {
   }
 
   removeUser(userId: string): void {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { [userId]: removed, ...users } = this.state.users
+    const { [userId]: _, ...users } = this.state.users
     this.setState({ users })
   }
 }
