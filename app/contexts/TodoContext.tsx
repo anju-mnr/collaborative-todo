@@ -4,7 +4,8 @@ import { createContext, useContext, useState, useCallback, useEffect, type React
 import { useSharedState } from "@airstate/react"
 import { nanoid } from "nanoid"
 import type { SharedState, Task, User } from "@/app/types"
-import { defaultSharedState, generateUserColor, generateInitials, generateUserId } from "@/app/lib/airstate"
+import { defaultSharedState, generateUserId } from "@/app/lib/airstate"
+import { useRouter } from "next/navigation"
 
 interface TodoContextType {
   state: SharedState
@@ -15,43 +16,58 @@ interface TodoContextType {
   addTask: (task: Omit<Task, "id" | "createdAt">) => void
   updateTask: (id: string, updates: Partial<Task>) => void
   deleteTask: (id: string) => void
-  setCurrentUser: (user: User | null) => void
+  setCurrentUser: (user: Omit<User, "id"> | null) => void
 }
 
 const TodoContext = createContext<TodoContextType | undefined>(undefined)
 
 export function TodoProvider({ children }: { children: ReactNode }) {
-  const [userId] = useState(() => generateUserId())
-  const [currentUser, setCurrentUserState] = useState<User | null>(null)
-  
-  // Get room key from URL parameters or generate new one
-  const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
-  const joiningKey = params?.get('roomKey')
-  const [roomKey] = useState(() => joiningKey || nanoid())
-  
-  const joinLink = typeof window !== 'undefined' 
-    ? `${window.location.origin}${window.location.pathname}?roomKey=${roomKey}`
-    : ''
+  const router = useRouter()
 
-  // Use airstate's useSharedState for real collaboration
-  const [state, setState, isConnected] = useSharedState<SharedState>(defaultSharedState, {
-    key: roomKey,
+  // 1) Resolve room key (same as before), but write it into the URL if missing (prevents new room on refresh)
+  const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null
+  const joiningKey = params?.get("roomKey")
+  const [roomKey] = useState(() => joiningKey || nanoid())
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    if (!joiningKey && roomKey) {
+      router.replace(`${window.location.pathname}?roomKey=${roomKey}`)
+    }
+  }, [joiningKey, roomKey, router])
+
+  // 2) STABLE userId per room (prevents duplicate presence entries after refresh)
+  const [userId] = useState(() => {
+    if (typeof window === "undefined") return generateUserId()
+    const storageKey = `todo-user-id:${roomKey}`
+    const saved = localStorage.getItem(storageKey)
+    const id = saved || generateUserId()
+    if (!saved) localStorage.setItem(storageKey, id)
+    return id
   })
 
-  // Add current user to shared state when connected
+  const [currentUser, setCurrentUserState] = useState<User | null>(null)
+
+  const joinLink =
+    typeof window !== "undefined"
+      ? `${window.location.origin}${window.location.pathname}?roomKey=${roomKey}`
+      : ""
+
+  // 3) Shared state is keyed by roomKey (unchanged)
+  const [state, setState, isConnected] = useSharedState<SharedState>(defaultSharedState, { key: roomKey })
+
+  // 4) Add current user to shared state (unchanged logic, but userId is now stable)
   useEffect(() => {
     if (!isConnected || !currentUser || state.users[userId]) return
-    
     const userCount = Object.keys(state.users).length
-    if (userCount >= 10) return // Limit to 10 users per room
-    
-    setState((prev) => ({
+    if (userCount >= 10) return
+    setState(prev => ({
       ...prev,
       users: {
         ...prev.users,
         [userId]: {
           ...currentUser,
-          id: userId,
+          id: userId, // ensure id is our stable id
           isActive: true,
           lastSeen: new Date().toISOString(),
         },
@@ -59,12 +75,11 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     }))
   }, [isConnected, currentUser, userId, state.users, setState])
 
-  // Update user activity periodically
+  // 5) Heartbeat
   useEffect(() => {
     if (!isConnected || !currentUser) return
-
     const interval = setInterval(() => {
-      setState((prev) => ({
+      setState(prev => ({
         ...prev,
         users: {
           ...prev.users,
@@ -75,79 +90,66 @@ export function TodoProvider({ children }: { children: ReactNode }) {
           },
         },
       }))
-    }, 10000) // Update every 10 seconds
-
+    }, 10000)
     return () => clearInterval(interval)
   }, [isConnected, currentUser, userId, setState])
 
-  // Clean up user on unmount
+  // 6) Cleanup on unmount
   useEffect(() => {
     return () => {
       if (isConnected && currentUser) {
-        setState((prev) => {
-          const { [userId]: removed, ...users } = prev.users
-          return {
-            ...prev,
-            users,
-          }
+        setState(prev => {
+          const { [userId]: _removed, ...users } = prev.users
+          return { ...prev, users }
         })
       }
     }
   }, [isConnected, currentUser, setState, userId])
 
+  // 7) Task ops
   const addTask = useCallback((task: Omit<Task, "id" | "createdAt">) => {
     if (!currentUser) return
-    
     const newTask: Task = {
       ...task,
       id: nanoid(),
       createdAt: new Date().toISOString(),
-      createdBy: userId,
+      createdBy: userId, // created by the stable id
     }
-    
-    setState((prev) => ({
-      ...prev,
-      tasks: [...prev.tasks, newTask],
-    }))
+    setState(prev => ({ ...prev, tasks: [...prev.tasks, newTask] }))
   }, [currentUser, userId, setState])
 
   const updateTask = useCallback((id: string, updates: Partial<Task>) => {
-    setState((prev) => ({
-      ...prev,
-      tasks: prev.tasks.map((task) => (task.id === id ? { ...task, ...updates } : task)),
-    }))
+    setState(prev => ({ ...prev, tasks: prev.tasks.map(t => (t.id === id ? { ...t, ...updates } : t)) }))
   }, [setState])
 
   const deleteTask = useCallback((id: string) => {
-    setState((prev) => ({
-      ...prev,
-      tasks: prev.tasks.filter((task) => task.id !== id),
-    }))
+    setState(prev => ({ ...prev, tasks: prev.tasks.filter(t => t.id !== id) }))
   }, [setState])
 
-  const setCurrentUser = useCallback((user: User | null) => {
-    setCurrentUserState(user)
+  // 8) Make sure currentUser.id always equals our stable userId (fixes “My Tasks” & presence identity)
+  const setCurrentUser = useCallback((user: Omit<User, "id"> | null) => {
     if (user) {
-      // Store user preference in localStorage
-      localStorage.setItem("collaborative-todo-user", JSON.stringify(user))
+      const fixed: User = { ...user, id: userId } // inject stable id here
+      setCurrentUserState(fixed)
+      localStorage.setItem("collaborative-todo-user", JSON.stringify(fixed))
     } else {
+      setCurrentUserState(null)
       localStorage.removeItem("collaborative-todo-user")
     }
-  }, [])
+  }, [userId])
 
-  // Load saved user from localStorage
+  // 9) Load saved user (and normalize id)
   useEffect(() => {
     const savedUser = localStorage.getItem("collaborative-todo-user")
     if (savedUser) {
       try {
-        const user = JSON.parse(savedUser)
-        setCurrentUserState(user)
-      } catch (error) {
-        console.error("Failed to parse saved user:", error)
+        const u = JSON.parse(savedUser) as User
+        setCurrentUserState({ ...u, id: userId })
+      } catch {
         localStorage.removeItem("collaborative-todo-user")
       }
     }
-  }, [])
+  }, [userId])
 
   const value: TodoContextType = {
     state,
@@ -165,9 +167,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
 }
 
 export function useTodo() {
-  const context = useContext(TodoContext)
-  if (context === undefined) {
-    throw new Error("useTodo must be used within a TodoProvider")
-  }
-  return context
+  const ctx = useContext(TodoContext)
+  if (ctx === undefined) throw new Error("useTodo must be used within a TodoProvider")
+  return ctx
 }

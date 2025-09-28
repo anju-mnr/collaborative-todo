@@ -15,7 +15,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string>("")
   const [linkCopied, setLinkCopied] = useState(false)
-
+  const [currentView, setCurrentView] = useState<"tasks" | "archive">("tasks") // Added view state
   const {
     state,
     isConnected,
@@ -29,7 +29,11 @@ export default function Home() {
   } = useTodo()
 
   const isJoined = currentUser !== null
-  const activeUsers = Object.values(state.users).filter(user => user.isActive)
+  const activeUsers = Object.values(state.users).filter(u => {
+    const freshMs = 30_000; // 30s window
+    const last = new Date(u.lastSeen).getTime();
+    return u.isActive && Date.now() - last < freshMs;
+  });
 
   // Show connection status while syncing
   if (!isConnected) {
@@ -79,16 +83,16 @@ export default function Home() {
       // Simulate network delay for better UX
       await new Promise((resolve) => setTimeout(resolve, 500))
 
-      const user: User = {
-        id: `user_${Math.random().toString(36).substr(2, 9)}`,
+      // Create user object without id (it will be added in context)
+      const user = {
         name: trimmedName,
         color: generateUserColor(),
         initials: generateInitials(trimmedName),
         isActive: true,
         lastSeen: new Date().toISOString(),
-      }
-
+      } // no id needed
       setCurrentUser(user)
+
     } catch {
       setError("Failed to join session. Please try again.")
     } finally {
@@ -170,9 +174,8 @@ export default function Home() {
                   }
                 }}
                 placeholder="Enter your name (2-20 characters)"
-                className={`w-full px-3 py-2 border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring transition-colors ${
-                  error ? "border-destructive" : "border-input"
-                }`}
+                className={`w-full px-3 py-2 border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring transition-colors ${error ? "border-destructive" : "border-input"
+                  }`}
                 disabled={isLoading}
                 maxLength={20}
               />
@@ -236,7 +239,7 @@ export default function Home() {
                 <span>{activeUsers.length} active {activeUsers.length === 1 ? 'user' : 'users'}</span>
               </div>
             </div>
-            
+
             <div className="flex gap-2">
               <input
                 readOnly
@@ -266,7 +269,7 @@ export default function Home() {
                 <ExternalLink size={14} />
               </button>
             </div>
-            
+
             <p className="text-xs text-muted-foreground">
               Share this link with others to collaborate on tasks together
             </p>
@@ -282,6 +285,7 @@ export default function Home() {
           currentUser={currentUser}
           onToggleTask={toggleTask}
           onDeleteTask={deleteTask}
+          onEditTask={(id, text) => updateTask(id, { text })}
         />
       </div>
     </div>
