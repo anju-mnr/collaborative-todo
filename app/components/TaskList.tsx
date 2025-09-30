@@ -4,6 +4,7 @@ import React, { useState } from "react"
 import { Check, Trash2, Clock, User, Users, Pencil, X } from "lucide-react"
 import type { Task, User as UserType } from "@/app/types"
 
+// TaskList.tsx
 interface TaskListProps {
   tasks: Task[]
   users: Record<string, UserType>
@@ -20,6 +21,7 @@ export function TaskList({ tasks, users, currentUser, onToggleTask, onDeleteTask
   const myTasks = tasks.filter((task) => task.createdBy === currentUser?.id)
   const otherTasks = tasks.filter((task) => task.createdBy !== currentUser?.id && task.createdBy !== "system")
   const systemTasks = tasks.filter((task) => task.createdBy === "system")
+  const allTasks = tasks.filter((task) => task.createdBy !== "system")
 
   const sortTasks = (taskList: Task[]) => {
     return [...taskList].sort((a, b) => {
@@ -27,7 +29,7 @@ export function TaskList({ tasks, users, currentUser, onToggleTask, onDeleteTask
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     })
   }
-
+  const sortedTasks = sortTasks(allTasks)
   const sortedMyTasks = sortTasks(myTasks)
   const sortedOtherTasks = sortTasks(otherTasks)
   const sortedSystemTasks = sortTasks(systemTasks)
@@ -67,19 +69,17 @@ export function TaskList({ tasks, users, currentUser, onToggleTask, onDeleteTask
             return (
               <div
                 key={task.id}
-                className={`group bg-card border border-border rounded-lg p-3 sm:p-4 transition-all hover:shadow-md ${
-                  task.completed ? "opacity-60" : ""
-                } ${isMyTask ? "border-l-4 border-l-primary" : ""}`}
+                className={`group bg-card border border-border rounded-lg p-3 sm:p-4 transition-all hover:shadow-md ${task.completed ? "opacity-60" : ""
+                  } ${isMyTask ? "border-l-4 border-l-primary" : ""}`}
               >
                 <div className="flex items-start gap-2 sm:gap-3">
                   {/* Checkbox */}
                   <button
                     onClick={() => onToggleTask(task.id)}
-                    className={`flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5 rounded border-2 transition-all ${
-                      task.completed
-                        ? "bg-primary border-primary text-primary-foreground"
-                        : "border-border hover:border-primary"
-                    }`}
+                    className={`flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5 rounded border-2 transition-all ${task.completed
+                      ? "bg-primary border-primary text-primary-foreground"
+                      : "border-border hover:border-primary"
+                      }`}
                   >
                     {task.completed && <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 m-auto" />}
                   </button>
@@ -116,9 +116,8 @@ export function TaskList({ tasks, users, currentUser, onToggleTask, onDeleteTask
                     ) : (
                       <>
                         <h3
-                          className={`font-medium text-sm sm:text-base text-card-foreground ${
-                            task.completed ? "line-through" : ""
-                          }`}
+                          className={`font-medium text-sm sm:text-base text-card-foreground ${task.completed ? "line-through" : ""
+                            }`}
                         >
                           {task.text}
                         </h3>
@@ -126,18 +125,21 @@ export function TaskList({ tasks, users, currentUser, onToggleTask, onDeleteTask
                         {/* Task Meta */}
                         <div className="flex items-center gap-1 sm:gap-2 mt-2 text-xs text-muted-foreground">
                           {creator && task.createdBy !== "system" && (
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1" aria-label={`Created by ${isMyTask ? "you" : creator.name}`}>
                               <div
                                 className="w-3 h-3 sm:w-4 sm:h-4 rounded-full flex items-center justify-center text-white text-xs font-medium"
                                 style={{ backgroundColor: creator.color }}
+                                title={creator.name}
                               >
                                 {creator.initials}
                               </div>
-                              <span className="hidden xs:inline">{isMyTask ? "by you" : `by ${creator.name}`}</span>
+                              <span className=" xs:inline">
+                                {`Created by ${isMyTask ? "you" : creator.name}`}
+                              </span>
                             </div>
                           )}
-                          {creator && task.createdBy !== "system" && <span className="hidden xs:inline">•</span>}
-                          <span className="hidden sm:inline">{new Date(task.createdAt).toLocaleTimeString()}</span>
+                          {creator && task.createdBy !== "system" && <span className=" xs:inline">•</span>}
+                          <span className=" sm:inline">{new Date(task.createdAt).toLocaleTimeString()}</span>
                           <span className="sm:hidden">
                             {new Date(task.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </span>
@@ -193,8 +195,9 @@ export function TaskList({ tasks, users, currentUser, onToggleTask, onDeleteTask
   return (
     <div className="space-y-6">
       <TaskSection title="Getting Started" tasks={sortedSystemTasks} icon={<Clock className="w-4 h-4" />} />
-      <TaskSection title="My Tasks" tasks={sortedMyTasks} icon={<User className="w-4 h-4" />} />
-      <TaskSection title="Team Tasks" tasks={sortedOtherTasks} icon={<Users className="w-4 h-4" />} />
+      {/* <TaskSection title="My Tasks" tasks={sortedMyTasks} icon={<User className="w-4 h-4" />} /> */}
+      {/* <TaskSection title="Team Tasks" tasks={sortedOtherTasks} icon={<Users className="w-4 h-4" />} /> */}
+      <TaskSection title="All Tasks" tasks={sortedTasks} icon={<Users className="w-4 h-4" />} />
     </div>
   )
 }

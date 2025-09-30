@@ -25,6 +25,8 @@ export function TodoProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
 
   // 1) Resolve room key (same as before), but write it into the URL if missing (prevents new room on refresh)
+
+  // TodoContext.tsx
   const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null
   const joiningKey = params?.get("roomKey")
   const [roomKey] = useState(() => joiningKey || nanoid())
@@ -36,7 +38,12 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     }
   }, [joiningKey, roomKey, router])
 
+
+
   // 2) STABLE userId per room (prevents duplicate presence entries after refresh)
+
+
+  // TodoContext.tsx
   const [userId] = useState(() => {
     if (typeof window === "undefined") return generateUserId()
     const storageKey = `todo-user-id:${roomKey}`
@@ -54,7 +61,12 @@ export function TodoProvider({ children }: { children: ReactNode }) {
       : ""
 
   // 3) Shared state is keyed by roomKey (unchanged)
-  const [state, setState, isConnected] = useSharedState<SharedState>(defaultSharedState, { key: roomKey })
+
+
+  // TodoContext.tsx
+  const [state, setState, isConnected] =
+    useSharedState<SharedState>(defaultSharedState, { key: roomKey })
+
 
   // 4) Add current user to shared state (unchanged logic, but userId is now stable)
   useEffect(() => {
@@ -107,6 +119,9 @@ export function TodoProvider({ children }: { children: ReactNode }) {
   }, [isConnected, currentUser, setState, userId])
 
   // 7) Task ops
+
+  //TodoContext.tsx
+
   const addTask = useCallback((task: Omit<Task, "id" | "createdAt">) => {
     if (!currentUser) return
     const newTask: Task = {
@@ -119,12 +134,16 @@ export function TodoProvider({ children }: { children: ReactNode }) {
   }, [currentUser, userId, setState])
 
   const updateTask = useCallback((id: string, updates: Partial<Task>) => {
-    setState(prev => ({ ...prev, tasks: prev.tasks.map(t => (t.id === id ? { ...t, ...updates } : t)) }))
+    setState(prev => ({ 
+      ...prev, 
+      tasks: prev.tasks.map(t => (t.id === id ? { ...t, ...updates } : t)) }))
   }, [setState])
 
   const deleteTask = useCallback((id: string) => {
     setState(prev => ({ ...prev, tasks: prev.tasks.filter(t => t.id !== id) }))
   }, [setState])
+
+
 
   // 8) Make sure currentUser.id always equals our stable userId (fixes “My Tasks” & presence identity)
   const setCurrentUser = useCallback((user: Omit<User, "id"> | null) => {

@@ -117,7 +117,8 @@ export default function Home() {
       console.error('Failed to copy link:', e)
     }
   }
-
+  
+  // page.tsx
   // Add new task
   const addTask = (text: string) => {
     if (!currentUser) return
