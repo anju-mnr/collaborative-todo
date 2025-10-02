@@ -2,14 +2,10 @@ import type { SharedState, Task, User } from "@/app/types"
 
 // Mock real-time state management
 class MockRealtimeClient {
-  private state: SharedState = {
-    tasks: [],
-    users: {},
-  }
-  private listeners: Set<(state: SharedState) => void> = new Set()
+  private state: SharedState;
+  private listeners: Set<(state: SharedState) => void> = new Set();
 
   constructor() {
-    // Simulate some initial data
     this.state = {
       tasks: [
         {
@@ -28,7 +24,10 @@ class MockRealtimeClient {
         },
       ],
       users: {},
-    }
+      live: {
+        edits: {},
+      },
+    };
   }
 
   getState(): SharedState {
@@ -96,14 +95,10 @@ export const realtimeClient = new MockRealtimeClient()
 export const defaultSharedState: SharedState = {
   tasks: [],
   users: {},
+  live: {
+    edits: {},
+  },
 }
-
-// Generate random user color
-export const generateUserColor = (): string => {
-  const colors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#3b82f6", "#8b5cf6", "#ec4899"]
-  return colors[Math.floor(Math.random() * colors.length)]
-}
-
 // Generate user initials from name
 export const generateInitials = (name: string): string => {
   return name
@@ -114,6 +109,6 @@ export const generateInitials = (name: string): string => {
 }
 
 // Generate unique ID
-export const generateId = (): string => {
+export function generateId(): string {
   return Math.random().toString(36).substr(2, 9)
 }

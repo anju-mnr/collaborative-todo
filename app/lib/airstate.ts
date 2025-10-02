@@ -35,6 +35,7 @@ export const defaultSharedState: SharedState = {
     },
   ],
   users: {},
+  live: { edits: {} },
 }
 
 // Generate unique room key
@@ -70,3 +71,4 @@ export const generateInitials = (name: string): string => {
 export const generateId = (): string => {
   return Math.random().toString(36).substr(2, 9)
 }
+

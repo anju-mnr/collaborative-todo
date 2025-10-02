@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { realtimeClient } from "@/app/lib/realtime"
+// Adjust the import according to the actual export in '@/app/lib/realtime'
+import {realtimeClient} from "@/app/lib/realtime"
 import type { SharedState } from "@/app/types"
 
 export function useRealtime() {

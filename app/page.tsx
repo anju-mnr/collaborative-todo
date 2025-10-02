@@ -16,17 +16,21 @@ export default function Home() {
   const [error, setError] = useState<string>("")
   const [linkCopied, setLinkCopied] = useState(false)
   const [currentView, setCurrentView] = useState<"tasks" | "archive">("tasks") // Added view state
+
   const {
-    state,
-    isConnected,
-    currentUser,
-    roomKey,
-    joinLink,
-    addTask: addTaskToState,
-    updateTask,
-    deleteTask: deleteTaskFromState,
-    setCurrentUser,
-  } = useTodo()
+  state,
+  isConnected,
+  currentUser,
+  roomKey,
+  joinLink,
+  addTask: addTaskToState,
+  updateTask,
+  deleteTask: deleteTaskFromState,
+  setCurrentUser,
+  startLiveEdit,
+  pushLiveEdit,
+  endLiveEdit,
+} = useTodo()
 
   const isJoined = currentUser !== null
   const activeUsers = Object.values(state.users).filter(u => {
@@ -117,7 +121,7 @@ export default function Home() {
       console.error('Failed to copy link:', e)
     }
   }
-  
+
   // page.tsx
   // Add new task
   const addTask = (text: string) => {
@@ -287,6 +291,12 @@ export default function Home() {
           onToggleTask={toggleTask}
           onDeleteTask={deleteTask}
           onEditTask={(id, text) => updateTask(id, { text })}
+
+          // live-collab
+          liveEdits={state?.live?.edits}
+          onStartLiveEdit={(taskId, text, caret) => startLiveEdit(taskId, text, caret)}
+          onPushLiveEdit={(taskId, text, caret) => pushLiveEdit(taskId, text, caret)}
+          onEndLiveEdit={(taskId) => endLiveEdit(taskId)}
         />
       </div>
     </div>

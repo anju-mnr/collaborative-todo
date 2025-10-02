@@ -20,4 +20,20 @@ export interface SharedState {
   tasks: Task[]
   users: Record<string, User>
   [key: string]: any // Index signature for Airstate compatibility
+    live: {
+    edits: Record<string, LiveEdit> // keyed by editor userId
+  }
 }
+
+export type LiveEdit = {
+  taskId: string
+  userId: string
+  text: string
+  caret: number
+  name: string
+  initials: string
+  color: string
+  updatedAt: string
+}
+
+
