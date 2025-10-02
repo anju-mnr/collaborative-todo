@@ -28,8 +28,8 @@ export function AddTaskForm({ onAddTask }: AddTaskFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="flex gap-2">
-        <div className="flex-1">
+      
+        <div className="">
           <input
             type="textfield"
             value={text}
@@ -40,6 +40,10 @@ export function AddTaskForm({ onAddTask }: AddTaskFormProps) {
           />
         </div>
 
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-xs text-white/70">
+          <span>Press Cmd/Ctrl + Enter to add task</span>
+        </div>
         <button
           type="submit"
           disabled={!text.trim()}
@@ -48,10 +52,6 @@ export function AddTaskForm({ onAddTask }: AddTaskFormProps) {
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">Add</span>
         </button>
-      </div>
-
-      <div className="flex items-center gap-2 text-xs text-white/70">
-        <span>Press Cmd/Ctrl + Enter to add task</span>
       </div>
     </form>
   )

@@ -261,16 +261,22 @@ export default function Home() {
 
             {/* Room Info & Sharing */}
             <div className="bg-white/10 backdrop-blur-lg rounded-3xl border border-white/20 shadow-2xl p-6 space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center ">
                 <div className="flex items-center gap-2 text-sm text-white font-medium">
                   <Users className="w-4 h-4" />
                   <span>Room: {roomKey.slice(0, 8)}...</span>
                   {/* <span>•</span>
                   <span>{activeUsers.length} active {activeUsers.length === 1 ? 'user' : 'users'}</span> */}
                 </div>
+                <button
+                  onClick={() => window.open(joinLink, '_blank')}
+                  className="px-3 py-2 text-white hover:bg-white/30 transition-all  "
+                >
+                  <ExternalLink size={16} />
+                </button>
               </div>
 
-              <div className="flex gap-1">
+              <div className="flex gap-2">
                 <input
                   readOnly
                   value={joinLink}
@@ -292,12 +298,7 @@ export default function Home() {
                     </>
                   )}
                 </button>
-                <button
-                  onClick={() => window.open(joinLink, '_blank')}
-                  className="px-3 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-all backdrop-blur-sm border border-white/30"
-                >
-                  <ExternalLink size={14} />
-                </button>
+
               </div>
 
               <p className="text-xs text-white/90 font-medium">
