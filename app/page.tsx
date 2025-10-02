@@ -165,8 +165,8 @@ export default function Home() {
   // Show join form if not joined
   if (!isJoined) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-purple-800 flex items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-6 glass-card p-8 rounded-3xl">
+      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-blue-400 to-purple-800 flex items-center justify-center p-4">
+        <div className="w-full max-w-lg space-y-6 glass-card p-8 rounded-3xl">
           <div className="text-center space-y-2">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/20 flex items-center justify-center float-animation backdrop-blur-sm border border-white/30">
               <UserPlus className="w-8 h-8 text-white" />
@@ -235,7 +235,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-purple-800">
+    <div className="min-h-screen bg-gradient-to-br from-purple-800 via-blue-800 to-purple-800">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8  max-w-5xl">
         {/* Header */}
         <div className="mb-6 sm:mb-8 space-y-4">
