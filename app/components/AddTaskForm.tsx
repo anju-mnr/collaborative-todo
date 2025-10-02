@@ -31,26 +31,26 @@ export function AddTaskForm({ onAddTask }: AddTaskFormProps) {
       <div className="flex gap-2">
         <div className="flex-1">
           <input
-            type="text"
+            type="textfield"
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Add a new task..."
-            className="w-full px-4 py-3 border border-input bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-ring transition-all"
+            className="w-full px-4 py-3 border border-white/30 bg-white/20 text-white rounded-2xl placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all backdrop-blur-sm"
           />
         </div>
 
         <button
           type="submit"
           disabled={!text.trim()}
-          className="px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+          className="px-4 py-3 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 hover:shadow-lg font-medium"
         >
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">Add</span>
         </button>
       </div>
 
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <div className="flex items-center gap-2 text-xs text-white/70">
         <span>Press Cmd/Ctrl + Enter to add task</span>
       </div>
     </form>

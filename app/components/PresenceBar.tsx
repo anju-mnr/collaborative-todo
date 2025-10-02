@@ -44,61 +44,85 @@ export function PresenceBar({ users, currentUser, onLogout }: PresenceBarProps) 
     <div className="relative">
       <button
         onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-1 px-2 py-1 rounded-md border border-input bg-background hover:bg-muted/50"
+        className="flex items-center gap-2 px-3 py-2 rounded-lg border border-white/30 bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-all duration-200 text-white"
         title="Active members"
       >
         <Users className="w-4 h-4" />
-        <span className="text-sm">{total}</span>
-        {me && <div className="ml-1 w-2 h-2 rounded-full bg-green-500" />}
+        <span className="text-sm font-medium">{total}</span>
+        {me && <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />}
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-64 bg-background text-popover-foreground border border-border rounded-md shadow-lg p-3 z-50">
-          <div className="text-sm font-medium mb-2">Active Members ({total})</div>
+        <div className="absolute right-0 mt-2 w-72 bg-gradient-to-br from-purple-600 via-blue-600 to-purple-800 border border-white/50 rounded-3xl shadow-2xl p-6 z-[9999] max-h-96 overflow-y-auto">
+          {/* Header */}
+          <div className="text-base font-semibold mb-4 text-white border-b border-white/30 pb-3">
+            Active Members ({total})
+          </div>
 
           {/* Me */}
           {me && (
-            <div className="flex items-center justify-between py-1">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between py-3 px-4 rounded-2xl hover:bg-white/20 transition-colors duration-200 mb-3 border border-white/20 bg-white/10">
+              <div className="flex items-center gap-3">
                 <div
-                  className="w-6 h-6 rounded-full text-[11px] text-white flex items-center justify-center"
+                  className="w-8 h-8 rounded-full text-xs text-white flex items-center justify-center font-semibold shadow-lg ring-2 ring-white/30"
                   style={{ backgroundColor: me.color }}
                 >
                   {me.initials}
                 </div>
-                <span>{me.name}</span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-white">{me.name}</span>
+                  <span className="text-xs bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent font-medium">(You)</span>
+                </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">(You)</span>
-                <span className="w-2 h-2 rounded-full bg-green-500" title="Active" />
+                <span className="w-3 h-3 rounded-full bg-gradient-to-r from-green-400 to-emerald-400 animate-pulse shadow-lg" title="Active" />
+                <span className="text-xs text-green-300 font-medium">Online</span>
               </div>
             </div>
           )}
 
           {/* Others */}
-          {others.map(u => (
-            <div key={u.id} className="flex items-center justify-between py-1">
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-6 h-6 rounded-full text-[11px] text-white flex items-center justify-center"
-                  style={{ backgroundColor: u.color }}
-                >
-                  {u.initials}
+          <div className="space-y-2">
+            {others.map(u => (
+              <div key={u.id} className="flex items-center justify-between py-3 px-4 rounded-2xl hover:bg-white/20 transition-colors duration-200 border border-white/10 hover:border-white/30">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-8 h-8 rounded-full text-xs text-white flex items-center justify-center font-semibold shadow-lg ring-2 ring-white/20"
+                    style={{ backgroundColor: u.color }}
+                  >
+                    {u.initials}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-white">{u.name}</span>
+                    <span className="text-xs text-white/70">Collaborator</span>
+                  </div>
                 </div>
-                <span>{u.name}</span>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-gradient-to-r from-green-400 to-emerald-400 shadow-lg" title="Active" />
+                  <span className="text-xs text-green-300 font-medium">Online</span>
+                </div>
               </div>
-              <span className="w-2 h-2 rounded-full bg-green-500" title="Active" />
-            </div>
-          ))}
-          <hr className="border-t border-border mt-2" />
-
+            ))}
+          </div>
+          
           {onLogout && me && (
-            <button
-              onClick={onLogout}
-              className="mt-2 w-full text-xs text-muted-foreground text-red-600 hover:text-foreground  pt-2"
-            >
-              Leave Session
-            </button>
+            <>
+              <hr className="border-t border-white/20 my-4" />
+              <button
+                onClick={() => {
+                  onLogout();
+                  setOpen(false);
+                }}
+                className="w-full text-sm text-red-300 hover:text-white hover:bg-red-500/20 px-4 py-3 rounded-2xl transition-all duration-200 text-left font-medium border border-red-400/30 hover:border-red-400/50 backdrop-blur-sm"
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Leave Session
+                </div>
+              </button>
+            </>
           )}
         </div>
       )}

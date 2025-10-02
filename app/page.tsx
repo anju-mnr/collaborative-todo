@@ -18,19 +18,19 @@ export default function Home() {
   const [currentView, setCurrentView] = useState<"tasks" | "archive">("tasks") // Added view state
 
   const {
-  state,
-  isConnected,
-  currentUser,
-  roomKey,
-  joinLink,
-  addTask: addTaskToState,
-  updateTask,
-  deleteTask: deleteTaskFromState,
-  setCurrentUser,
-  startLiveEdit,
-  pushLiveEdit,
-  endLiveEdit,
-} = useTodo()
+    state,
+    isConnected,
+    currentUser,
+    roomKey,
+    joinLink,
+    addTask: addTaskToState,
+    updateTask,
+    deleteTask: deleteTaskFromState,
+    setCurrentUser,
+    startLiveEdit,
+    pushLiveEdit,
+    endLiveEdit,
+  } = useTodo()
 
   const isJoined = currentUser !== null
   const activeUsers = Object.values(state.users).filter(u => {
@@ -42,10 +42,25 @@ export default function Home() {
   // Show connection status while syncing
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
-          <p className="text-muted-foreground">Connecting to room...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 via-blue-600 to-purple-800">
+        <div className="text-center space-y-6 bg-white/10 backdrop-blur-lg p-10 rounded-3xl border border-white/20 shadow-2xl">
+          {/* Gradient Spinner */}
+          <div className="relative mx-auto w-16 h-16">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-transparent bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 p-1">
+              <div className="rounded-full h-full w-full bg-white/10 backdrop-blur-lg"></div>
+            </div>
+            <div className="absolute inset-2 animate-pulse rounded-full bg-gradient-to-r from-purple-400 to-blue-400 opacity-30"></div>
+          </div>
+
+          {/* Gradient Text */}
+          <div className="space-y-2">
+            <h3 className="text-xl font-bold bg-gradient-to-r from-white via-purple-100 to-blue-100 bg-clip-text text-transparent">
+              Connecting to room...
+            </h3>
+            <p className="text-white/80 text-sm">
+              Please wait while we establish the connection
+            </p>
+          </div>
         </div>
       </div>
     )
@@ -150,19 +165,19 @@ export default function Home() {
   // Show join form if not joined
   if (!isJoined) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-6">
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-purple-800 flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-6 glass-card p-8 rounded-3xl">
           <div className="text-center space-y-2">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-              <UserPlus className="w-8 h-8 text-primary" />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/20 flex items-center justify-center float-animation backdrop-blur-sm border border-white/30">
+              <UserPlus className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground text-balance">Join Collaborative To-Do</h1>
-            <p className="text-muted-foreground text-sm sm:text-base">Enter your name to start collaborating</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white text-balance">Join Collaborative To-Do</h1>
+            <p className="text-white/80 text-sm sm:text-base">Enter your name to start collaborating</p>
           </div>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium text-foreground">
+              <label htmlFor="name" className="text-sm font-medium text-white">
                 Your Name
               </label>
               <input
@@ -179,22 +194,22 @@ export default function Home() {
                   }
                 }}
                 placeholder="Enter your name (2-20 characters)"
-                className={`w-full px-3 py-2 border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring transition-colors ${error ? "border-destructive" : "border-input"
+                className={`w-full px-4 py-3 bg-white/20 backdrop-blur-sm border border-white/30 text-white placeholder-white/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/25 transition-all ${error ? "border-red-400" : "border-white/30"
                   }`}
                 disabled={isLoading}
                 maxLength={20}
               />
-              {error && <p className="text-sm text-destructive">{error}</p>}
+              {error && <p className="text-sm text-red-300">{error}</p>}
             </div>
 
             <button
               onClick={() => joinSession(userName)}
               disabled={!userName.trim() || isLoading}
-              className="w-full bg-primary text-primary-foreground py-2 px-4 rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 text-white py-3 px-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 font-medium hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
             >
               {isLoading ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                   Joining...
                 </>
               ) : (
@@ -207,7 +222,7 @@ export default function Home() {
 
             {Object.keys(state.users).length > 0 && (
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-white/70">
                   {Object.keys(state.users).length} {Object.keys(state.users).length === 1 ? "person is" : "people are"}{" "}
                   currently online
                 </p>
@@ -220,84 +235,95 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-4xl">
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-purple-800">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8  max-w-5xl">
         {/* Header */}
         <div className="mb-6 sm:mb-8 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground text-balance">Collaborative To-Do</h1>
-              <ConnectionStatus isConnected={isConnected} />
-            </div>
-            <div className="flex justify-center sm:justify-end">
-              <PresenceBar users={Object.values(state.users)} currentUser={currentUser} onLogout={logout} />
-            </div>
-          </div>
-
-          {/* Room Info & Sharing */}
-          <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Users className="w-4 h-4" />
-                <span>Room: {roomKey.slice(0, 8)}...</span>
-                <span>•</span>
-                <span>{activeUsers.length} active {activeUsers.length === 1 ? 'user' : 'users'}</span>
+          <div className="bg-white/10 backdrop-blur-lg rounded-3xl border border-white/20 shadow-2xl relative z-50 p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white via-purple-100 to-blue-100 bg-clip-text text-transparent">
+                  Collaborative To-Do
+                </h1>
+                <ConnectionStatus isConnected={isConnected} />
+              </div>
+              <div className="flex justify-center sm:justify-end">
+                <PresenceBar users={Object.values(state.users)} currentUser={currentUser} onLogout={logout} />
               </div>
             </div>
-
-            <div className="flex gap-2">
-              <input
-                readOnly
-                value={joinLink}
-                className="flex-1 px-3 py-2 text-sm bg-background border border-input rounded-md"
-                placeholder="Room link"
-              />
-              <button
-                onClick={copyLink}
-                className="px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2"
-              >
-                {linkCopied ? (
-                  <>
-                    <span className="text-xs">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy size={14} />
-                    <span className="text-xs hidden sm:inline">Copy</span>
-                  </>
-                )}
-              </button>
-              <button
-                onClick={() => window.open(joinLink, '_blank')}
-                className="px-3 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
-              >
-                <ExternalLink size={14} />
-              </button>
-            </div>
-
-            <p className="text-xs text-muted-foreground">
-              Share this link with others to collaborate on tasks together
-            </p>
           </div>
 
-          <AddTaskForm onAddTask={addTask} />
+          <div className="grid grid-cols-3 gap-2">
+
+            <div className="col-span-2 bg-white/10 backdrop-blur-lg rounded-3xl border border-white/20 shadow-2xl p-6">
+              <AddTaskForm onAddTask={addTask} />
+            </div>
+
+            {/* Room Info & Sharing */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-3xl border border-white/20 shadow-2xl p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-white font-medium">
+                  <Users className="w-4 h-4" />
+                  <span>Room: {roomKey.slice(0, 8)}...</span>
+                  {/* <span>•</span>
+                  <span>{activeUsers.length} active {activeUsers.length === 1 ? 'user' : 'users'}</span> */}
+                </div>
+              </div>
+
+              <div className="flex gap-1">
+                <input
+                  readOnly
+                  value={joinLink}
+                  className="flex-1 px-3 py-2 text-sm bg-white/25 border border-white/40 text-white font-medium placeholder-white/70 rounded-3xl backdrop-blur-sm"
+                  placeholder="Room link"
+                />
+                <button
+                  onClick={copyLink}
+                  className="px-3 py-2 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 text-white rounded-lg transition-all flex items-center gap-1 hover:shadow-lg font-medium"
+                >
+                  {linkCopied ? (
+                    <>
+                      <span className="text-xs">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={14} />
+                      {/* <span className="text-xs hidden sm:inline">Copy</span> */}
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => window.open(joinLink, '_blank')}
+                  className="px-3 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-all backdrop-blur-sm border border-white/30"
+                >
+                  <ExternalLink size={14} />
+                </button>
+              </div>
+
+              <p className="text-xs text-white/90 font-medium">
+                Share this link with others to collaborate on tasks together
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Task List */}
-        <TaskList
-          tasks={state.tasks}
-          users={state.users}
-          currentUser={currentUser}
-          onToggleTask={toggleTask}
-          onDeleteTask={deleteTask}
-          onEditTask={(id, text) => updateTask(id, { text })}
+        <div className="bg-white/10 backdrop-blur-lg rounded-3xl border border-white/20 shadow-2xl p-6">
+          <TaskList
+            tasks={state.tasks}
+            users={state.users}
+            currentUser={currentUser}
+            onToggleTask={toggleTask}
+            onDeleteTask={deleteTask}
+            onEditTask={(id, text) => updateTask(id, { text })}
 
-          // live-collab
-          liveEdits={state?.live?.edits}
-          onStartLiveEdit={(taskId, text, caret) => startLiveEdit(taskId, text, caret)}
-          onPushLiveEdit={(taskId, text, caret) => pushLiveEdit(taskId, text, caret)}
-          onEndLiveEdit={(taskId) => endLiveEdit(taskId)}
-        />
+            // live-collab
+            liveEdits={state?.live?.edits}
+            onStartLiveEdit={(taskId, text, caret) => startLiveEdit(taskId, text, caret)}
+            onPushLiveEdit={(taskId, text, caret) => pushLiveEdit(taskId, text, caret)}
+            onEndLiveEdit={(taskId) => endLiveEdit(taskId)}
+          />
+        </div>
       </div>
     </div>
   )

@@ -167,7 +167,11 @@ export function TodoProvider({ children }: { children: ReactNode }) {
   }, [userId])
 
   // ===== LIVE EDIT HELPERS (INSIDE the provider) =====
-  const startLiveEdit = useCallback((taskId: string, text: string, caret: number) => {
+
+
+  // start: when input opens (or you focus it the first time)
+  const startLiveEdit = useCallback(
+    (taskId: string, text: string, caret: number) => {
     if (!currentUser) return
     setState(prev => ({
       ...prev,
@@ -190,6 +194,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     }))
   }, [setState, userId, currentUser])
 
+  // push: on every change/selection (throttled with rAF)
   const pushLiveEdit = useCallback((taskId: string, text: string, caret: number) => {
     if (!currentUser) return
     setState(prev => ({
@@ -213,6 +218,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     }))
   }, [setState, userId, currentUser])
 
+  // end: on save/cancel/blur/unmount
   const endLiveEdit = useCallback((taskId?: string) => {
     setState(prev => {
       const edits = { ...prev.live.edits }
