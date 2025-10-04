@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Copy, Users, UserPlus, ExternalLink } from "lucide-react"
 import { useTodo } from "@/app/contexts/TodoContext"
 import { generateUserColor, generateInitials } from "@/app/lib/airstate"
@@ -32,13 +32,16 @@ export default function Home() {
 
   const isJoined = currentUser !== null
 
+  // Track whether we have ever connected in this tab (for "Reconnecting..." vs "Connecting...")
+  const [everConnected, setEverConnected] = useState(false)
+  useEffect(() => { if (isConnected) setEverConnected(true) }, [isConnected])
+
   const joinSession = async (name: string) => {
     const trimmedName = name.trim()
 
     if (!trimmedName) return setError("Please enter your name")
     if (trimmedName.length < 2) return setError("Name must be at least 2 characters long")
     if (trimmedName.length > 20) return setError("Name must be less than 20 characters")
-    if (!isConnected) return setError("Connecting… please wait")
 
     const existingUser = Object.values(state.users).find(
       (user) => user.name.toLowerCase() === trimmedName.toLowerCase(),
@@ -103,10 +106,11 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-400 via-blue-400 to-purple-800 flex items-center justify-center p-4">
         <div className="relative w-full max-w-lg space-y-6 glass-card p-8 rounded-3xl">
-          {/* tiny connecting pill */}
+
+          {/* connection banner – does NOT block joining */}
           {!isConnected && (
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-white/90 text-xs bg-white/20 border border-white/30 rounded-full px-3 py-1 backdrop-blur">
-              Connecting…
+              {everConnected ? "Reconnecting…" : "Connecting…"}
             </div>
           )}
 
@@ -127,8 +131,8 @@ export default function Home() {
                 value={userName}
                 onChange={(e) => { setUserName(e.target.value); if (error) setError("") }}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && userName.trim() && !isLoading && isConnected) {
-                    joinSession(userName)
+                  if (e.key === "Enter" && userName.trim() && !isLoading) {
+                    joinSession(userName) // allow join even if still connecting
                   }
                 }}
                 placeholder="Enter your name (2–20 characters)"
@@ -141,7 +145,7 @@ export default function Home() {
 
             <button
               onClick={() => joinSession(userName)}
-              disabled={!userName.trim() || isLoading || !isConnected}
+              disabled={!userName.trim() || isLoading}  // removed "!isConnected"
               className="w-full bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 text-white py-3 px-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 font-medium hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
             >
               {isLoading ? (
