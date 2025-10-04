@@ -1,13 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Copy, Users, UserPlus, ExternalLink } from "lucide-react"
 import { useTodo } from "@/app/contexts/TodoContext"
 import { generateUserColor, generateInitials } from "@/app/lib/airstate"
 import { TaskList } from "@/app/components/TaskList"
 import { AddTaskForm } from "@/app/components/AddTaskForm"
 import { PresenceBar } from "@/app/components/PresenceBar"
-import { ConnectionStatus } from "@/app/components/ConnectionStatus"
 
 export default function Home() {
   const [userName, setUserName] = useState<string>("")
@@ -17,7 +16,7 @@ export default function Home() {
 
   const {
     state,
-    isConnected,
+    // isConnected,  // <- not used anymore
     currentUser,
     roomKey,
     joinLink,
@@ -31,10 +30,6 @@ export default function Home() {
   } = useTodo()
 
   const isJoined = currentUser !== null
-
-  // Track whether we have ever connected in this tab (for "Reconnecting..." vs "Connecting...")
-  const [everConnected, setEverConnected] = useState(false)
-  useEffect(() => { if (isConnected) setEverConnected(true) }, [isConnected])
 
   const joinSession = async (name: string) => {
     const trimmedName = name.trim()
@@ -100,20 +95,12 @@ export default function Home() {
   const deleteTask = (taskId: string) => deleteTaskFromState(taskId)
 
   // ---------------------------
-  // JOIN VIEW (always available)
+  // JOIN VIEW
   // ---------------------------
   if (!isJoined) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-400 via-blue-400 to-purple-800 flex items-center justify-center p-4">
         <div className="relative w-full max-w-lg space-y-6 glass-card p-8 rounded-3xl">
-
-          {/* connection banner – does NOT block joining */}
-          {!isConnected && (
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-white/90 text-xs bg-white/20 border border-white/30 rounded-full px-3 py-1 backdrop-blur">
-              {everConnected ? "Reconnecting…" : "Connecting…"}
-            </div>
-          )}
-
           <div className="text-center space-y-2">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/20 flex items-center justify-center float-animation backdrop-blur-sm border border-white/30">
               <UserPlus className="w-8 h-8 text-white" />
@@ -132,7 +119,7 @@ export default function Home() {
                 onChange={(e) => { setUserName(e.target.value); if (error) setError("") }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && userName.trim() && !isLoading) {
-                    joinSession(userName) // allow join even if still connecting
+                    joinSession(userName)
                   }
                 }}
                 placeholder="Enter your name (2–20 characters)"
@@ -145,7 +132,7 @@ export default function Home() {
 
             <button
               onClick={() => joinSession(userName)}
-              disabled={!userName.trim() || isLoading}  // removed "!isConnected"
+              disabled={!userName.trim() || isLoading}
               className="w-full bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 text-white py-3 px-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 font-medium hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
             >
               {isLoading ? (
@@ -188,7 +175,7 @@ export default function Home() {
                 <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white via-purple-100 to-blue-100 bg-clip-text text-transparent">
                   Collaborative To-Do
                 </h1>
-                <ConnectionStatus isConnected={isConnected} />
+                {/* ConnectionStatus removed */}
               </div>
               <div className="flex justify-center sm:justify-end">
                 <PresenceBar users={Object.values(state.users)} currentUser={currentUser} onLogout={logout} />
