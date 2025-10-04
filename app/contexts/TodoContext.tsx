@@ -2,10 +2,23 @@
 
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react"
 import { useSharedState } from "@airstate/react"
+import { configure } from "@airstate/client"            // ⬅️ NEW
 import { nanoid } from "nanoid"
 import type { SharedState, Task, User } from "@/app/types"
 import { defaultSharedState, generateUserId } from "@/app/lib/airstate"
 import { useRouter } from "next/navigation"
+
+// --- Configure AirState (client-side) ---
+const APP_ID =
+  (process.env.NEXT_PUBLIC_AIRSTATE_APP_ID as string | undefined) ||
+  (process.env.NEXT_PUBLIC_AIRSTATE_PUBLIC_KEY as string | undefined) ||
+  (process.env.NEXT_PUBLIC_AIRSTATE_PUBLIC_TOKEN as string | undefined); // your "Public Key" works here
+
+if (typeof window !== "undefined" && APP_ID) {
+  // safe to call multiple times; SDK handles idempotence
+  try { configure({ appId: APP_ID }); } catch {}
+}
+// ----------------------------------------
 
 interface TodoContextType {
   state: SharedState
@@ -17,6 +30,7 @@ interface TodoContextType {
   updateTask: (id: string, updates: Partial<Task>) => void
   deleteTask: (id: string) => void
   setCurrentUser: (user: Omit<User, "id"> | null) => void
+  // live-edit helpers
   startLiveEdit: (taskId: string, text: string, caret: number) => void
   pushLiveEdit: (taskId: string, text: string, caret: number) => void
   endLiveEdit: (taskId?: string) => void
@@ -27,14 +41,12 @@ const TodoContext = createContext<TodoContextType | undefined>(undefined)
 export function TodoProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
 
-  // Read roomKey from URL if present
+  // read optional ?roomKey from URL; otherwise create one
   const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null
   const joiningKey = params?.get("roomKey") ?? undefined
-
-  // Keep a stable key for this tab; don't push it to the URL yet
   const [roomKey] = useState(() => joiningKey || nanoid())
 
-  // Stable per-room user id
+  // stable per-room user id
   const [userId] = useState(() => {
     if (typeof window === "undefined") return generateUserId()
     const storageKey = `todo-user-id:${roomKey}`
@@ -51,12 +63,12 @@ export function TodoProvider({ children }: { children: ReactNode }) {
       ? `${window.location.origin}${window.location.pathname}?roomKey=${roomKey}`
       : ""
 
-  // Shared state (AirState) — safe to create; we just won't expose the link until joined
+  // shared state keyed by room
   const [state, setState, isConnected] = useSharedState<SharedState>(defaultSharedState, { key: roomKey })
 
-  // Presence: add self when joined
+  // add self to presence (don’t gate on isConnected; it can lag in prod)
   useEffect(() => {
-    if (!isConnected || !currentUser || state.users[userId]) return
+    if (!currentUser || state.users[userId]) return
     const userCount = Object.keys(state.users).length
     if (userCount >= 10) return
     setState(prev => ({
@@ -71,11 +83,11 @@ export function TodoProvider({ children }: { children: ReactNode }) {
         },
       },
     }))
-  }, [isConnected, currentUser, userId, state.users, setState])
+  }, [currentUser, userId, state.users, setState])
 
-  // Presence: heartbeat
+  // heartbeat every 10s (also not gated on isConnected)
   useEffect(() => {
-    if (!isConnected || !currentUser) return
+    if (!currentUser) return
     const interval = setInterval(() => {
       setState(prev => ({
         ...prev,
@@ -90,21 +102,19 @@ export function TodoProvider({ children }: { children: ReactNode }) {
       }))
     }, 10000)
     return () => clearInterval(interval)
-  }, [isConnected, currentUser, userId, setState])
+  }, [currentUser, userId, setState])
 
-  // Cleanup on unmount
+  // cleanup on unmount
   useEffect(() => {
     return () => {
-      if (isConnected && currentUser) {
-        setState(prev => {
-          const { [userId]: _removed, ...users } = prev.users
-          return { ...prev, users }
-        })
-      }
+      setState(prev => {
+        const { [userId]: _removed, ...users } = prev.users
+        return { ...prev, users }
+      })
     }
-  }, [isConnected, currentUser, setState, userId])
+  }, [setState, userId])
 
-  // Task ops
+  // task ops
   const addTask = useCallback((task: Omit<Task, "id" | "createdAt">) => {
     if (!currentUser) return
     const newTask: Task = {
@@ -127,13 +137,11 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     setState(prev => ({ ...prev, tasks: prev.tasks.filter(t => t.id !== id) }))
   }, [setState])
 
-  // JOIN / LOGOUT
+  // push roomKey into URL when a user joins (and on restore)
   const pushKeyToUrl = useCallback(() => {
     if (typeof window === "undefined") return
     const hasKey = new URLSearchParams(window.location.search).has("roomKey")
-    if (!hasKey) {
-      router.replace(`${window.location.pathname}?roomKey=${roomKey}`, { scroll: false })
-    }
+    if (!hasKey) router.replace(`${window.location.pathname}?roomKey=${roomKey}`, { scroll: false })
   }, [router, roomKey])
 
   const setCurrentUser = useCallback((user: Omit<User, "id"> | null) => {
@@ -141,7 +149,6 @@ export function TodoProvider({ children }: { children: ReactNode }) {
       const fixed: User = { ...user, id: userId }
       setCurrentUserState(fixed)
       localStorage.setItem("collaborative-todo-user", JSON.stringify(fixed))
-      // ⬇️ Only now, after "joining", add roomKey to the URL
       pushKeyToUrl()
     } else {
       setCurrentUserState(null)
@@ -151,27 +158,25 @@ export function TodoProvider({ children }: { children: ReactNode }) {
         delete edits[userId]
         return { ...prev, live: { ...prev.live, edits } }
       })
-      // do NOT remove roomKey from URL; keeps the invite link stable
     }
   }, [userId, setState, pushKeyToUrl])
 
-  // Auto-restore saved user -> treat as joined and push key if missing
+  // restore saved user
   useEffect(() => {
     const savedUser = localStorage.getItem("collaborative-todo-user")
     if (savedUser) {
       try {
         const u = JSON.parse(savedUser) as User
         setCurrentUserState({ ...u, id: userId })
-        // ⬇️ if user is already joined locally, ensure URL has the key
         pushKeyToUrl()
       } catch {
         localStorage.removeItem("collaborative-todo-user")
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]) // (pushKeyToUrl not added to deps to avoid double runs on Next dev refresh)
+  }, [userId])
 
-  // Live edit helpers
+  // live-edit helpers
   const startLiveEdit = useCallback((taskId: string, text: string, caret: number) => {
     if (!currentUser) return
     setState(prev => ({
@@ -218,17 +223,6 @@ export function TodoProvider({ children }: { children: ReactNode }) {
       delete edits[userId]
       return { ...prev, live: { ...prev.live, edits } }
     })
-  }, [setState, userId])
-
-  // Clear my live edit on unmount
-  useEffect(() => {
-    return () => {
-      setState(prev => {
-        const edits = { ...prev.live.edits }
-        delete edits[userId]
-        return { ...prev, live: { ...prev.live, edits } }
-      })
-    }
   }, [setState, userId])
 
   const value: TodoContextType = {
