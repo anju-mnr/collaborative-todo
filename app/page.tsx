@@ -16,7 +16,7 @@ export default function Home() {
 
   const {
     state,
-    // isConnected,  // <- not used anymore
+    // isConnected,  
     currentUser,
     roomKey,
     joinLink,

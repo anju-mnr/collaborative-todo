@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react"
 import { useSharedState } from "@airstate/react"
-import { configure } from "@airstate/client"            // ⬅️ NEW
+import { configure } from "@airstate/client"            
 import { nanoid } from "nanoid"
 import type { SharedState, Task, User } from "@/app/types"
 import { defaultSharedState, generateUserId } from "@/app/lib/airstate"
