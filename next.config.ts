@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   // Ensure client-side code works properly in production
   reactStrictMode: true,
   
-  // Handle WebSocket connections and serverless limitations
+  // WebSocket and serverless optimizations
   experimental: {
     serverActions: {
       allowedOrigins: ['localhost:3000', '*.vercel.app', '*.vercel.com']
@@ -16,18 +16,42 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_AIRSTATE_APP_ID: process.env.NEXT_PUBLIC_AIRSTATE_APP_ID,
   },
   
-  // Optimize for deployment
+  // Optimize for deployment and WebSocket connections
   poweredByHeader: false,
+  compress: false, // Can interfere with WebSocket upgrades
   
-  // Handle potential CORS issues
+  // Handle WebSocket and CORS issues
   async headers() {
     return [
       {
         source: '/(.*)',
         headers: [
+          // WebSocket support headers
+          {
+            key: 'Connection',
+            value: 'Upgrade',
+          },
+          {
+            key: 'Upgrade',
+            value: 'websocket',
+          },
+          // Security headers
           {
             key: 'X-Frame-Options',
             value: 'DENY',
+          },
+          // CORS headers for WebSocket
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization, Upgrade, Connection',
           },
         ],
       },

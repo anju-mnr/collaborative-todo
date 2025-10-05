@@ -1,0 +1,25 @@
+{
+  "functions": {
+    "app/**/*.ts": {
+      "maxDuration": 30
+    },
+    "app/**/*.tsx": {
+      "maxDuration": 30
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Connection",
+          "value": "keep-alive"
+        },
+        {
+          "key": "Keep-Alive",
+          "value": "timeout=5, max=1000"
+        }
+      ]
+    }
+  ]
+}

@@ -7,6 +7,7 @@ import { nanoid } from "nanoid"
 import type { SharedState, Task, User } from "@/app/types"
 import { defaultSharedState, generateUserId } from "@/app/lib/airstate"
 import { useRouter } from "next/navigation"
+import { setupWebSocketMonitoring, setupVisibilityRecovery, setupNetworkRecovery } from "@/app/lib/websocket-recovery"
 
 // --- Configure AirState (client-side) ---
 const APP_ID =
@@ -19,17 +20,15 @@ if (typeof window !== "undefined" && APP_ID) {
   try { 
     configure({ appId: APP_ID }); 
     console.log("✅ AirState configured successfully");
+    
+    // Setup WebSocket monitoring and recovery for Vercel deployment
+    setupWebSocketMonitoring();
+    setupVisibilityRecovery();
+    setupNetworkRecovery();
+    console.log("🔧 WebSocket recovery systems enabled for production");
+    
   } catch (error) {
     console.error("❌ AirState configuration failed:", error);
-    // Retry after a short delay
-    setTimeout(() => {
-      try {
-        configure({ appId: APP_ID });
-        console.log("✅ AirState retry configuration successful");
-      } catch (retryError) {
-        console.error("❌ AirState retry configuration failed:", retryError);
-      }
-    }, 3000);
   }
 } else if (typeof window !== "undefined") {
   console.error("❌ AirState APP_ID is missing! Environment variables:", {

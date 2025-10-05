@@ -16,12 +16,15 @@ export function ConnectionStatus({ isConnected, isReconnecting = false }: Connec
       setShowStatus(true)
     } else {
       // Hide status after a brief delay when connected
-      const timer = setTimeout(() => setShowStatus(false), 2000)
+      const timer = setTimeout(() => setShowStatus(false), 3000) // Longer delay to see success
       return () => clearTimeout(timer)
     }
   }, [isConnected, isReconnecting])
 
-  if (!showStatus) return null
+  // Always show status in development for debugging
+  const shouldShow = showStatus || (process.env.NODE_ENV === 'development')
+
+  if (!shouldShow) return null
 
   return (
     <div
