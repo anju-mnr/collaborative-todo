@@ -21,6 +21,15 @@ if (typeof window !== "undefined" && APP_ID) {
     console.log("✅ AirState configured successfully");
   } catch (error) {
     console.error("❌ AirState configuration failed:", error);
+    // Retry after a short delay
+    setTimeout(() => {
+      try {
+        configure({ appId: APP_ID });
+        console.log("✅ AirState retry configuration successful");
+      } catch (retryError) {
+        console.error("❌ AirState retry configuration failed:", retryError);
+      }
+    }, 3000);
   }
 } else if (typeof window !== "undefined") {
   console.error("❌ AirState APP_ID is missing! Environment variables:", {
