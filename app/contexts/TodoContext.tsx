@@ -16,7 +16,17 @@ const APP_ID =
 
 if (typeof window !== "undefined" && APP_ID) {
   // safe to call multiple times; SDK handles idempotence
-  try { configure({ appId: APP_ID }); } catch {}
+  try { 
+    configure({ appId: APP_ID }); 
+    console.log("✅ AirState configured successfully");
+  } catch (error) {
+    console.error("❌ AirState configuration failed:", error);
+  }
+} else if (typeof window !== "undefined") {
+  console.error("❌ AirState APP_ID is missing! Environment variables:", {
+    NEXT_PUBLIC_AIRSTATE_APP_ID: process.env.NEXT_PUBLIC_AIRSTATE_APP_ID,
+    NODE_ENV: process.env.NODE_ENV
+  });
 }
 // ----------------------------------------
 
