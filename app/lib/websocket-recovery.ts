@@ -26,20 +26,38 @@ export function setupWebSocketMonitoring() {
           wasClean: event.wasClean
         });
         
-        // Handle abnormal closures (not user-initiated)
-        if (event.code !== 1000 && event.code !== 1001 && reconnectAttempts < maxReconnectAttempts) {
+        // Handle different close codes
+        if (event.code === 1005) {
+          console.log("⚠️  Code 1005: No status code received - possible server-side rejection");
+        } else if (event.code === 1006) {
+          console.log("⚠️  Code 1006: Abnormal closure - connection lost unexpectedly");
+        }
+        
+        // Handle abnormal closures (not user-initiated) but be more selective about reconnection
+        const shouldReconnect = (
+          event.code !== 1000 && // Normal closure
+          event.code !== 1001 && // Going away
+          event.code !== 4000 && // Custom app closure
+          reconnectAttempts < maxReconnectAttempts
+        );
+        
+        if (shouldReconnect) {
           reconnectAttempts++;
-          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts - 1), 30000); // Exponential backoff
+          // Longer delay for code 1005 (server rejection)
+          const baseDelay = event.code === 1005 ? 5000 : 1000;
+          const delay = Math.min(baseDelay * Math.pow(2, reconnectAttempts - 1), 60000); // Up to 1 minute
           
           console.log(`🔄 WebSocket reconnection attempt ${reconnectAttempts}/${maxReconnectAttempts} in ${delay}ms...`);
           
           setTimeout(() => {
             // Trigger page reload as a fallback if too many failed attempts
             if (reconnectAttempts >= maxReconnectAttempts) {
-              console.log("🔄 Max WebSocket reconnection attempts reached, reloading page...");
-              window.location.reload();
+              console.log("🔄 Max WebSocket reconnection attempts reached. Connection may be unstable.");
+              // Don't auto-reload, let user decide
             }
           }, delay);
+        } else {
+          console.log("🔴 WebSocket connection terminated, not attempting reconnection");
         }
       });
       

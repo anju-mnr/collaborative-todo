@@ -22,7 +22,29 @@ export default function ConnectionTest() {
     addLog(`Environment: ${process.env.NODE_ENV}`)
     addLog(`AirState App ID: ${process.env.NEXT_PUBLIC_AIRSTATE_APP_ID ? "✅ Present" : "❌ Missing"}`)
     addLog(`Window object: ${typeof window !== "undefined" ? "✅ Available" : "❌ Not available"}`)
+    addLog(`User Agent: ${typeof navigator !== "undefined" ? navigator.userAgent.substring(0, 50) + "..." : "N/A"}`)
+    addLog(`Location: ${typeof window !== "undefined" ? window.location.href : "N/A"}`)
   }, [])
+
+  // Add connection attempt counter
+  useEffect(() => {
+    let attemptCount = 0;
+    const interval = setInterval(() => {
+      if (!isConnected) {
+        attemptCount++;
+        addLog(`📊 Connection attempt #${attemptCount} - Still disconnected`)
+        
+        if (attemptCount > 10) {
+          addLog(`⚠️  ${attemptCount} failed connection attempts - AirState may have server issues`)
+          clearInterval(interval)
+        }
+      } else {
+        attemptCount = 0;
+      }
+    }, 10000) // Check every 10 seconds
+    
+    return () => clearInterval(interval)
+  }, [isConnected])
 
   const updateMessage = () => {
     const newMessage = `Updated at ${new Date().toLocaleTimeString()}`

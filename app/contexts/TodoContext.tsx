@@ -8,6 +8,7 @@ import type { SharedState, Task, User } from "@/app/types"
 import { defaultSharedState, generateUserId } from "@/app/lib/airstate"
 import { useRouter } from "next/navigation"
 import { setupWebSocketMonitoring, setupVisibilityRecovery, setupNetworkRecovery } from "@/app/lib/websocket-recovery"
+import { checkAirStateHealth } from "@/app/lib/airstate-health"
 
 // --- Configure AirState (client-side) ---
 const APP_ID =
@@ -15,21 +16,50 @@ const APP_ID =
   (process.env.NEXT_PUBLIC_AIRSTATE_PUBLIC_KEY as string | undefined) ||
   (process.env.NEXT_PUBLIC_AIRSTATE_PUBLIC_TOKEN as string | undefined); // your "Public Key" works here
 
-if (typeof window !== "undefined" && APP_ID) {
-  // safe to call multiple times; SDK handles idempotence
+// Enhanced AirState configuration with better connection handling
+let configurationAttempts = 0;
+const maxAttempts = 3;
+
+function configureAirStateRobust() {
+  if (typeof window === "undefined" || !APP_ID) return false;
+  
+  configurationAttempts++;
+  console.log(`🔧 AirState configuration attempt ${configurationAttempts}/${maxAttempts}`);
+  
   try { 
-    configure({ appId: APP_ID }); 
+    configure({ 
+      appId: APP_ID,
+      // Add any additional configuration options that might help
+    }); 
     console.log("✅ AirState configured successfully");
     
     // Setup WebSocket monitoring and recovery for Vercel deployment
     setupWebSocketMonitoring();
     setupVisibilityRecovery();
     setupNetworkRecovery();
+    
+    // Check AirState service health
+    setTimeout(() => checkAirStateHealth(), 2000);
+    
     console.log("🔧 WebSocket recovery systems enabled for production");
     
+    return true;
   } catch (error) {
-    console.error("❌ AirState configuration failed:", error);
+    console.error(`❌ AirState configuration failed (attempt ${configurationAttempts}):`, error);
+    
+    if (configurationAttempts < maxAttempts) {
+      console.log("🔄 Retrying AirState configuration in 3 seconds...");
+      setTimeout(() => configureAirStateRobust(), 3000);
+    } else {
+      console.error("❌ All AirState configuration attempts failed");
+    }
+    return false;
   }
+}
+
+if (typeof window !== "undefined" && APP_ID) {
+  // Initial configuration with retry logic
+  configureAirStateRobust();
 } else if (typeof window !== "undefined") {
   console.error("❌ AirState APP_ID is missing! Environment variables:", {
     NEXT_PUBLIC_AIRSTATE_APP_ID: process.env.NEXT_PUBLIC_AIRSTATE_APP_ID,
