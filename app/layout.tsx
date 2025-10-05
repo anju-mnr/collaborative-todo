@@ -1,6 +1,9 @@
+/// <reference path="./globals.d.ts" />
+import "./globals.css";
+import "@/app/lib/airstate.client";  // <-- add this line (side-effect import)
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
 import { TodoProvider } from "@/app/contexts/TodoContext";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });

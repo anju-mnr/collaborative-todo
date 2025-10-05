@@ -1,6 +1,6 @@
-// Type declarations for CSS imports
+// Type declarations for CSS imports (both module and side-effect imports)
 declare module "*.css" {
-  const content: { [className: string]: string };
+  const content: Record<string, string>;
   export default content;
 }
 
@@ -13,9 +13,9 @@ declare module "*.sass" {
   const content: { [className: string]: string };
   export default content;
 }
-
-// For side-effect CSS imports (like globals.css)
-declare module "*.css" {
-  const content: any;
-  export = content;
+export {}
+declare global {
+  interface Window {
+    __airstateConfigured?: boolean
+  }
 }
