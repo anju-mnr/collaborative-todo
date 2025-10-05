@@ -25,10 +25,10 @@ export function ConnectionStatus({ isConnected, isReconnecting = false }: Connec
 
   return (
     <div
-      className={`fixed flex items-center justify-center top-2 right-[50%] z-50 px-3 py-2 rounded-lg shadow-lg border transition-all ${
+      className={`inline-flex items-center justify-center px-3 py-1.5 rounded-full shadow-lg border transition-all ${
         isConnected && !isReconnecting
-          ? "bg-green-50 border-green-200 text-green-800"
-          : "bg-yellow-50 border-yellow-200 text-yellow-800"
+          ? "bg-green-500/20 backdrop-blur-sm border-green-400/30 text-green-100"
+          : "bg-yellow-500/20 backdrop-blur-sm border-yellow-400/30 text-yellow-100"
       }`}
     >
       <div className="flex items-center justify-center gap-2 text-sm">

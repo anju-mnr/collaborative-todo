@@ -7,6 +7,7 @@ import { generateUserColor, generateInitials } from "@/app/lib/airstate"
 import { TaskList } from "@/app/components/TaskList"
 import { AddTaskForm } from "@/app/components/AddTaskForm"
 import { PresenceBar } from "@/app/components/PresenceBar"
+import { ConnectionStatus } from "@/app/components/ConnectionStatus"
 
 export default function Home() {
   const [userName, setUserName] = useState<string>("")
@@ -16,7 +17,7 @@ export default function Home() {
 
   const {
     state,
-    // isConnected,  
+    isConnected,  
     currentUser,
     roomKey,
     joinLink,
@@ -175,7 +176,7 @@ export default function Home() {
                 <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white via-purple-100 to-blue-100 bg-clip-text text-transparent">
                   Collaborative To-Do
                 </h1>
-                {/* ConnectionStatus removed */}
+                <ConnectionStatus isConnected={isConnected} />
               </div>
               <div className="flex justify-center sm:justify-end">
                 <PresenceBar users={Object.values(state.users)} currentUser={currentUser} onLogout={logout} />
