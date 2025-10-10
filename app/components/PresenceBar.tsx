@@ -44,24 +44,24 @@ export function PresenceBar({ users, currentUser, onLogout }: PresenceBarProps) 
     <div className="relative">
       <button
         onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg border border-white/30 bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-all duration-200 text-white"
+        className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-white/30 bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-all duration-200 text-white text-sm"
         title="Active members"
       >
-        <Users className="w-4 h-4" />
-        <span className="text-sm font-medium">{total}</span>
-        {me && <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />}
+        <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+        <span className="text-xs sm:text-sm font-medium">{total}</span>
+        {me && <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-400 animate-pulse" />}
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-72 bg-gradient-to-br from-purple-600 via-blue-600 to-purple-800 border border-white/50 rounded-3xl shadow-2xl p-6 z-[9999] max-h-96 overflow-y-auto">
+        <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-gradient-to-br from-purple-500 via-blue-500 to-purple-600 border-2 border-blue-400/50 rounded-2xl shadow-2xl shadow-purple-500/25 p-5 z-[9999] max-h-96 overflow-y-auto backdrop-blur-lg">
           {/* Header */}
-          <div className="text-base font-semibold mb-4 text-white border-b border-white/30 pb-3">
+          <div className="text-lg font-bold mb-4 text-white">
             Active Members ({total})
           </div>
 
           {/* Me */}
           {me && (
-            <div className="flex items-center justify-between py-3 px-4 rounded-2xl hover:bg-white/20 transition-colors duration-200 mb-3 border border-white/20 bg-white/10">
+            <div className="flex items-center justify-between py-3 px-4 rounded-xl hover:bg-white/15 transition-colors duration-200 mb-3 bg-blue-500/30 backdrop-blur-sm border border-white/20">
               <div className="flex items-center gap-3">
                 <div
                   className="w-8 h-8 rounded-full text-xs text-white flex items-center justify-center font-semibold shadow-lg ring-2 ring-white/30"
@@ -84,7 +84,7 @@ export function PresenceBar({ users, currentUser, onLogout }: PresenceBarProps) 
           {/* Others */}
           <div className="space-y-2">
             {others.map(u => (
-              <div key={u.id} className="flex items-center justify-between py-3 px-4 rounded-2xl hover:bg-white/20 transition-colors duration-200 border border-white/10 hover:border-white/30">
+              <div key={u.id} className="flex items-center justify-between py-3 px-4 rounded-xl hover:bg-white/15 transition-colors duration-200 bg-blue-500/20 backdrop-blur-sm border border-white/15 hover:border-white/25">
                 <div className="flex items-center gap-3">
                   <div
                     className="w-8 h-8 rounded-full text-xs text-white flex items-center justify-center font-semibold shadow-lg ring-2 ring-white/20"
@@ -113,7 +113,7 @@ export function PresenceBar({ users, currentUser, onLogout }: PresenceBarProps) 
                   onLogout();
                   setOpen(false);
                 }}
-                className="w-full text-sm text-red-300 hover:text-white hover:bg-red-500/20 px-4 py-3 rounded-2xl transition-all duration-200 text-left font-medium border border-red-400/30 hover:border-red-400/50 backdrop-blur-sm"
+                className="w-full text-sm text-orange-300 hover:text-white hover:bg-orange-500/20 px-4 py-3 rounded-xl transition-all duration-200 text-left font-medium border border-orange-400/30 hover:border-orange-400/50 backdrop-blur-sm"
               >
                 <div className="flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

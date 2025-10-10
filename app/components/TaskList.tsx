@@ -97,10 +97,10 @@ export function TaskList({
 
     return (
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-white">
+        <div className="flex items-center gap-2 text-sm font-medium text-gray-200">
           {icon}
           <span>{title}</span>
-          <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">{tasks.length}</span>
+          <span className="text-xs bg-gradient-to-r from-blue-500 to-pink-500 text-white px-2 py-0.5 rounded-full shadow-lg">{tasks.length}</span>
         </div>
 
         <div className="space-y-2">
@@ -131,19 +131,40 @@ export function TaskList({
                   exit={{ opacity: 0, y: 8 }}
                   whileHover={{ scale: isEditing ? 1 : 1.02 }}
                   transition={{ type: "spring", stiffness: 420, damping: 32 }}
-                  className={`group bg-white/15 backdrop-blur-lg border border-white/30 text-white rounded-3xl p-4 sm:p-5 shadow-xl
-          hover:shadow-2xl hover:bg-white/20 ${task.completed ? "opacity-60" : ""} ${isMyTask ? "border-l-4 border-l-pink-400 shadow-2xl" : ""}`}
+                  className={`group bg-gray-700/80 backdrop-blur-lg border-2 border-gray-500 text-gray-100 rounded-2xl sm:rounded-3xl p-3 sm:p-4 lg:p-5 shadow-xl hover:shadow-2xl hover:bg-gray-700/90 hover:border-blue-400/70 transition-all duration-300 ${task.completed ? "opacity-60 hover:opacity-70" : ""} ${isMyTask ? "border-l-4 sm:border-l-6 border-l-pink-400 shadow-2xl bg-gray-700/90 ring-2 ring-pink-400/50 border-pink-400/60" : ""}`}
                 >
-                  <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="flex items-start gap-3">
                     {/* Checkbox */}
-                    <button onClick={() => onToggleTask(task.id)} className="relative grid place-items-center w-5 h-5 rounded-md border-2 border-white/50 hover:border-white/80 transition-colors">
-                      <motion.div
-                        initial={false}
-                        animate={{ scale: task.completed ? 1 : 0 }}
-                        transition={{ type: "spring", stiffness: 600, damping: 28 }}
-                        className="absolute inset-0 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 rounded-[4px]"
-                      />
-                      <Check className="w-3 h-3 text-white relative z-10" />
+                    <button 
+                      onClick={() => onToggleTask(task.id)} 
+                      className="relative rounded-md border-2 transition-all duration-300 mt-0.5 flex-shrink-0 flex items-center justify-center"
+                      style={{
+                        width: '20px',
+                        height: '20px',
+                        minWidth: '20px',
+                        minHeight: '20px',
+                        maxWidth: '20px',
+                        maxHeight: '20px',
+                        background: task.completed 
+                          ? 'linear-gradient(135deg, #ec4899 0%, #a855f7 50%, #3b82f6 100%)'
+                          : '#374151',
+                        borderColor: task.completed 
+                          ? '#ec4899' 
+                          : '#6b7280',
+                        boxShadow: task.completed 
+                          ? '0 0 15px rgba(236, 72, 153, 0.5)' 
+                          : 'none',
+                      }}
+                    >
+                      {task.completed && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                        >
+                          <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" strokeWidth={2} />
+                        </motion.div>
+                      )}
                     </button>
 
                     {/* Content */}
@@ -177,7 +198,7 @@ export function TaskList({
                                 commitEdit(task.id)
                               }
                             }}
-                            className="w-full px-3 py-2 border border-white/30 bg-white/20 text-white placeholder-white/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 backdrop-blur-sm"
+                            className="w-full px-3 py-2 border-2 border-gray-500 bg-gray-800 text-gray-100 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400"
                           />
 
                           <button
@@ -187,7 +208,7 @@ export function TaskList({
                               e.preventDefault()      // stops the input from blurring first
                               commitEdit(task.id)
                             }}
-                            className="px-2 py-1 rounded-lg border border-white/30 text-white hover:bg-green-500/20 hover:border-green-400/50 backdrop-blur-sm transition-all"
+                            className="px-2 py-1 rounded-lg border-2 border-gray-500 text-gray-300 hover:bg-green-600 hover:border-green-400 hover:text-white transition-all"
                             title="Save"
                           >
                             <Check className="w-4 h-4" />
@@ -201,7 +222,7 @@ export function TaskList({
                               e.preventDefault()      // stops the input from blurring first
                               cancelEditing()
                             }}
-                            className="px-2 py-1 rounded-lg border border-white/30 text-white hover:bg-red-500/20 hover:border-red-400/50 backdrop-blur-sm transition-all"
+                            className="px-2 py-1 rounded-lg border-2 border-gray-500 text-gray-300 hover:bg-red-600 hover:border-red-400 hover:text-white transition-all"
                             title="Cancel"
                           >
                             <X className="w-4 h-4" />
@@ -212,7 +233,7 @@ export function TaskList({
                         <>
                           {/* Title row: left = text (with live caret if any), right = Created by … */}
                           <div className="flex items-start justify-between gap-2">
-                            <h3 className={`pr-40 font-medium text-sm sm:text-base text-white ${task.completed ? "line-through text-white/60" : ""}`}>
+                            <h3 className={`pr-40 font-medium text-sm sm:text-base text-gray-100 ${task.completed ? "line-through text-gray-400" : ""}`}>
                               {firstGhost ? renderGhostText(firstGhost.text, firstGhost.caret) : task.text}
                             </h3>
 
@@ -242,7 +263,7 @@ export function TaskList({
                           )}
 
                           {/* Timestamp row */}
-                          <div className="flex items-center justify-between gap-1 sm:gap-2 mt-2 text-xs text-white/90 font-medium">
+                          <div className="flex items-center justify-between gap-1 sm:gap-2 mt-2 text-xs text-gray-400 font-medium">
                             <span className="hidden sm:inline">{new Date(task.createdAt).toLocaleTimeString()}</span>
                             <span className="sm:hidden">
                               {new Date(task?.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -250,7 +271,7 @@ export function TaskList({
                             {/* Created by badge in the top-right */}
                             {creator && task.createdBy !== "system" && (
                               <div
-                                className="flex items-center gap-1 text-xs text-white font-medium"
+                                className="flex items-center gap-1 text-xs text-gray-300 font-medium"
                                 title={`Created by ${isMyTask ? "you" : creator.name}`}
                               >
                                 <div
@@ -272,7 +293,7 @@ export function TaskList({
                       {isMyTask && task?.createdBy !== "system" && !isEditing && (
                         <button
                           onClick={() => startEditing(task)}
-                          className="flex-shrink-0 p-1 text-white/80 hover:text-white hover:bg-white/20 rounded-md transition-all"
+                          className="flex-shrink-0 p-1 text-gray-400 hover:text-blue-400 hover:bg-blue-600/20 rounded-md transition-all"
                           title="Edit task"
                         >
                           <Pencil className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -281,7 +302,7 @@ export function TaskList({
                       {(isMyTask || task?.createdBy === "system") && (
                         <button
                           onClick={() => onDeleteTask(task?.id)}
-                          className="flex-shrink-0 p-1 text-white/80 hover:text-red-400 hover:bg-red-500/20 rounded-md transition-all"
+                          className="flex-shrink-0 p-1 text-gray-400 hover:text-pink-400 hover:bg-pink-600/20 rounded-md transition-all"
                           title="Delete task"
                         >
                           <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
