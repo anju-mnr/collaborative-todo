@@ -3,22 +3,30 @@
 import { useMemo, useState } from "react"
 import { Users } from "lucide-react"
 import type { User } from "@/app/types"
+import { useTodo } from "@/app/contexts/TodoContext"
 
 interface PresenceBarProps {
-  users: User[]
-  currentUser: User | null
+  users?: User[]
+  currentUser?: User | null
   onLogout?: () => void
+  usePresenceHook?: boolean // NEW: whether to use the presence hook from context
 }
 
-export function PresenceBar({ users, currentUser, onLogout }: PresenceBarProps) {
+export function PresenceBar({ users, currentUser, onLogout, usePresenceHook = false }: PresenceBarProps) {
   const [open, setOpen] = useState(false)
+  
+  // Get presence data from context if using the hook
+  const todoContext = useTodo()
 
   const activeUsers = useMemo(() => {
+    // Choose data source inside useMemo to avoid dependencies changing
+    const finalUsers = usePresenceHook ? todoContext.presenceUsers : users || []
+    
     const FRESHNESS_MS = 30_000 // 30 seconds
     const now = Date.now()
 
     // 1) filter by active + recent heartbeat
-    const filtered = users.filter(u => {
+    const filtered = finalUsers.filter(u => {
       if (!u?.isActive) return false
       if (!u?.lastSeen) return true
       const last = new Date(u.lastSeen).getTime()
@@ -33,10 +41,13 @@ export function PresenceBar({ users, currentUser, onLogout }: PresenceBarProps) 
       }
     }
     return Array.from(byName.values())
-  }, [users])
+  }, [usePresenceHook, todoContext.presenceUsers, users])
 
-  const meId = currentUser?.id
-  const me = activeUsers.find(u => u.id === meId) ?? currentUser ?? null
+  // Choose current user data source
+  const finalCurrentUser = usePresenceHook ? todoContext.currentUser : currentUser
+
+  const meId = finalCurrentUser?.id
+  const me = activeUsers.find(u => u.id === meId) ?? finalCurrentUser ?? null
   const others = activeUsers.filter(u => u.id !== meId)
   const total = (me ? 1 : 0) + others.length
 

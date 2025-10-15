@@ -177,19 +177,11 @@ export default function Home() {
                   <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
                     Collaborative To-Do
                   </h1>
-                  {/* {process.env.NODE_ENV === 'development' && (
-                    <a 
-                      href="/responsive-test" 
-                      className="text-xs text-purple-300 hover:text-purple-200 underline mt-1"
-                    >
-                      🔧 Test Responsive Design
-                    </a>
-                  )} */}
                 </div>
                 <ConnectionStatus isConnected={isConnected} />
               </div>
               <div className="flex justify-start sm:justify-end">
-                <PresenceBar users={Object.values(state.users)} currentUser={currentUser} onLogout={logout} />
+                <PresenceBar usePresenceHook={true} onLogout={logout} />
               </div>
             </div>
           </div>

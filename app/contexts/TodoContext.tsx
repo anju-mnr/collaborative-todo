@@ -7,9 +7,10 @@ import {
   useState,
   useCallback,
   useEffect,
+  useRef,
   type ReactNode,
 } from "react"
-import { useSharedState } from "@airstate/react"
+import { useSharedState, useSharedPresence } from "@airstate/react"
 import { nanoid } from "nanoid"
 import type { SharedState, Task, User } from "@/app/types"
 import { defaultSharedState, generateUserId } from "@/app/lib/airstate"
@@ -21,6 +22,9 @@ interface TodoContextType {
   currentUser: User | null
   roomKey: string
   joinLink: string
+  // Presence data from useSharedPresence
+  presence: any
+  presenceUsers: User[]
   addTask: (task: Omit<Task, "id" | "createdAt">) => void
   updateTask: (id: string, updates: Partial<Task>) => void
   deleteTask: (id: string) => void
@@ -78,54 +82,63 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     } as any
   )
 
-  // 4) Add myself to presence when I have a currentUser.
-  //    Do NOT gate on `isConnected` (it can lag slightly in prod).
-  useEffect(() => {
-    if (!currentUser || state.users[userId]) return
-    const userCount = Object.keys(state.users).length
-    if (userCount >= 10) return
-    setState((prev) => ({
-      ...prev,
-      users: {
-        ...prev.users,
-        [userId]: {
-          ...currentUser,
-          id: userId,
-          isActive: true,
-          lastSeen: new Date().toISOString(),
-        },
-      },
-    }))
-  }, [currentUser, userId, state.users, setState])
+  // 4) NEW: useSharedPresence for dedicated user presence management
+  const presence = useSharedPresence({
+    peerId: userId,
+    initialState: {
+      id: userId,
+      name: currentUser?.name || "Guest",
+      color: currentUser?.color || "#6b7280",
+      isActive: true,
+      lastSeen: new Date().toISOString(),
+      initials: currentUser?.initials || "G",
+    } as any
+  })
 
-  // 5) Heartbeat every 10s to keep me “active”
-  useEffect(() => {
-    if (!currentUser) return
-    const interval = setInterval(() => {
-      setState((prev) => ({
-        ...prev,
-        users: {
-          ...prev.users,
-          [userId]: {
-            ...prev.users[userId],
-            lastSeen: new Date().toISOString(),
-            isActive: true,
-          },
-        },
-      }))
-    }, 10000)
-    return () => clearInterval(interval)
-  }, [currentUser, userId, setState])
+  // Update presence when currentUser changes (using ref to avoid infinite loops)
+  const presenceSetStateRef = useRef(presence.setState)
+  presenceSetStateRef.current = presence.setState
 
-  // 6) Cleanup presence on unmount
   useEffect(() => {
-    return () => {
-      setState((prev) => {
-        const { [userId]: _removed, ...users } = prev.users
-        return { ...prev, users }
-      })
+    if (currentUser && presenceSetStateRef.current) {
+      presenceSetStateRef.current({
+        id: userId,
+        name: currentUser.name,
+        color: currentUser.color,
+        isActive: true,
+        lastSeen: new Date().toISOString(),
+        initials: currentUser.initials,
+      } as any)
     }
-  }, [setState, userId])
+  }, [currentUser, userId])
+
+  // Extract users from presence data
+  const presenceUsers: User[] = [
+    // Your own presence
+    ...(presence.self ? [{
+      id: presence.self.peerId,
+      name: presence.self.state?.name || "Unknown",
+      color: presence.self.state?.color || "#6b7280",
+      isActive: presence.self.state?.isActive || false,
+      lastSeen: presence.self.state?.lastSeen || new Date().toISOString(),
+      initials: presence.self.state?.initials || "?",
+    }] : []),
+    // Other users' presence
+    ...Object.values(presence.others || {}).map((peer: any) => ({
+      id: peer.peerId,
+      name: peer.state?.name || "Unknown",
+      color: peer.state?.color || "#6b7280", 
+      isActive: peer.state?.isActive || false,
+      lastSeen: peer.state?.lastSeen || new Date().toISOString(),
+      initials: peer.state?.initials || "?",
+    }))
+  ]
+
+  // OLD: Manual user addition removed - now using useSharedPresence hook above
+
+  // OLD: Heartbeat removed - useSharedPresence handles this automatically
+
+  // OLD: Manual cleanup removed - useSharedPresence handles this automatically
 
   // 7) Task operations
   const addTask = useCallback(
@@ -276,6 +289,8 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     currentUser,
     roomKey,
     joinLink,
+    presence,
+    presenceUsers,
     addTask,
     updateTask,
     deleteTask,
