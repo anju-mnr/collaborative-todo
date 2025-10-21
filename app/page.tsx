@@ -6,21 +6,26 @@ import { useTodo } from "@/app/contexts/TodoContext"
 import { generateUserColor, generateInitials } from "@/app/lib/airstate"
 import { TaskList } from "@/app/components/TaskList"
 import { AddTaskForm } from "@/app/components/AddTaskForm"
-import { PresenceBar } from "@/app/components/PresenceBar"
+import PresenceBar from "@/app/components/PresenceBar"
 import { ConnectionStatus } from "@/app/components/ConnectionStatus"
-
+const FRESH_MS = 30_000;
+const isFresh = (iso?: string) => !!iso && Date.now() - new Date(iso).getTime() < FRESH_MS;
 export default function Home() {
   const [userName, setUserName] = useState<string>("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string>("")
   const [linkCopied, setLinkCopied] = useState(false)
 
+
+
+
   const {
     state,
-    isConnected,  
+    isConnected,
     currentUser,
     roomKey,
     joinLink,
+    presenceUsers,
     addTask: addTaskToState,
     updateTask,
     deleteTask: deleteTaskFromState,
@@ -29,6 +34,11 @@ export default function Home() {
     pushLiveEdit,
     endLiveEdit,
   } = useTodo()
+
+  // Count only fresh + active users in THIS room
+  const onlineNow = (presenceUsers ?? []).filter(
+    (u) => u?.isActive && isFresh(u?.lastSeen)
+  );
 
   const isJoined = currentUser !== null
 
@@ -39,7 +49,7 @@ export default function Home() {
     if (trimmedName.length < 2) return setError("Name must be at least 2 characters long")
     if (trimmedName.length > 20) return setError("Name must be less than 20 characters")
 
-    const existingUser = Object.values(state.users).find(
+    const existingUser = presenceUsers.find(
       (user) => user.name.toLowerCase() === trimmedName.toLowerCase(),
     )
     if (existingUser) return setError("This name is already taken. Please choose a different name.")
@@ -149,10 +159,10 @@ export default function Home() {
               )}
             </button>
 
-            {Object.keys(state.users).length > 0 && (
+            {presenceUsers.length > 0 && (
               <div className="text-center">
-                <p className="text-xs text-blue-300/80 font-medium">
-                  {Object.keys(state.users).length} {Object.keys(state.users).length === 1 ? "person is" : "people are"} currently online
+                <p className="text-xs text-muted-foreground">
+                  {presenceUsers.length} {presenceUsers.length === 1 ? "person is" : "people are"} currently online
                 </p>
               </div>
             )}
@@ -181,8 +191,9 @@ export default function Home() {
                 <ConnectionStatus isConnected={isConnected} />
               </div>
               <div className="flex justify-start sm:justify-end">
-                <PresenceBar usePresenceHook={true} onLogout={logout} />
+                <PresenceBar currentUser={currentUser} onLogout={logout} />
               </div>
+
             </div>
           </div>
 
@@ -201,7 +212,11 @@ export default function Home() {
                   <span>Room: {roomKey.slice(0, 8)}...</span>
                 </div>
                 <button
-                  onClick={() => window.open(joinLink, "_blank")}
+                  onClick={() => {
+                    if (typeof window !== "undefined") {
+                      window.open(joinLink, "_blank")
+                    }
+                  }}
                   className="px-3 py-2 text-gray-400 hover:bg-gray-700 hover:text-blue-400 transition-all rounded-lg"
                 >
                   <ExternalLink size={16} />
@@ -241,7 +256,7 @@ export default function Home() {
         <div className="bg-gray-800/90 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 border-2 border-blue-500/60 ring-2 ring-pink-500/40">
           <TaskList
             tasks={state.tasks}
-            users={state.users}
+            presenceUsers={presenceUsers}
             currentUser={currentUser}
             onToggleTask={toggleTask}
             onDeleteTask={deleteTask}
@@ -250,6 +265,7 @@ export default function Home() {
             onStartLiveEdit={startLiveEdit}
             onPushLiveEdit={pushLiveEdit}
             onEndLiveEdit={endLiveEdit}
+
           />
         </div>
       </div>

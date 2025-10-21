@@ -6,7 +6,7 @@ import type { Task, User as UserType } from "@/app/types"
 import { motion, AnimatePresence } from "framer-motion"
 interface TaskListProps {
   tasks: Task[]
-  users: Record<string, UserType>
+  presenceUsers: UserType[]
   currentUser: UserType | null
   onToggleTask: (taskId: string) => void
   onDeleteTask: (taskId: string) => void
@@ -43,7 +43,7 @@ function renderGhostText(draft: string, caret: number) {
 
 export function TaskList({
   tasks,
-  users,
+  presenceUsers,
   currentUser,
   onToggleTask,
   onDeleteTask,
@@ -106,7 +106,8 @@ export function TaskList({
         <div className="space-y-2">
           <AnimatePresence initial={false}>
             {tasks.map((task) => {
-              const creator = users[task.createdBy]
+              // Find creator in presence users only
+              const creator = presenceUsers.find(u => u.id === task.createdBy)
               const isMyTask = task.createdBy === currentUser?.id
               const isEditing = editingId === task.id
 

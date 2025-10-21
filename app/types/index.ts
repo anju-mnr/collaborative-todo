@@ -18,11 +18,11 @@ export interface User {
 
 export interface SharedState {
   tasks: Task[]
-  users: Record<string, User>
-  [key: string]: any // Index signature for Airstate compatibility
-    live: {
+  users: User[] // Add users to shared state as fallback
+  live: {
     edits: Record<string, LiveEdit> // keyed by editor userId
   }
+  [key: string]: any // Index signature for Airstate compatibility
 }
 
 export type LiveEdit = {

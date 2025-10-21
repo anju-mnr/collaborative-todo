@@ -34,7 +34,7 @@ export const defaultSharedState: SharedState = {
       createdBy: "system",
     },
   ],
-  users: {},
+  users: [], // Add users array to shared state
   live: { edits: {} },
 }
 
