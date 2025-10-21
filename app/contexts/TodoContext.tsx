@@ -410,6 +410,9 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     const typingIndicators = Object.values(state.live.typing || {}).filter(indicator => {
       if (!indicator || !indicator.isTyping || indicator.context !== context) return false
       
+      // Filter out the current user - don't show their own typing indicator
+      if (currentUser && indicator.userId === currentUser.id) return false
+      
       // Filter out stale typing indicators (older than 3 seconds)
       const lastTyped = new Date(indicator.lastTyped).getTime()
       return (now - lastTyped) < 3000
@@ -418,7 +421,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     return typingIndicators.map(indicator => 
       presenceUsers.find(user => user.id === indicator.userId)
     ).filter(Boolean) as User[]
-  }, [state.live.typing, presenceUsers])
+  }, [state.live.typing, presenceUsers, currentUser])
 
   const value: TodoContextType = {
     state,
