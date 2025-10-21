@@ -34,6 +34,10 @@ interface TodoContextType {
   startLiveEdit: (taskId: string, text: string, caret: number) => void
   pushLiveEdit: (taskId: string, text: string, caret: number) => void
   endLiveEdit: (taskId?: string) => void
+
+  // typing indicators
+  setTyping: (context: "new-task" | "edit-task", isTyping: boolean) => void
+  getTypingUsers: (context: "new-task" | "edit-task") => User[]
 }
 
 const TodoContext = createContext<TodoContextType | undefined>(undefined)
@@ -330,6 +334,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
       setState((prev) => {
         const users = prev.users || []
         const now = new Date().toISOString()
+        const currentTime = Date.now()
         
         // Update current user's lastSeen and clean up inactive users
         const updatedUsers = users
@@ -341,16 +346,79 @@ export function TodoProvider({ children }: { children: ReactNode }) {
           .filter(user => {
             // Remove users that haven't been seen for more than 60 seconds
             const lastSeen = new Date(user.lastSeen).getTime()
-            const timeDiff = Date.now() - lastSeen
+            const timeDiff = currentTime - lastSeen
             return timeDiff < 60000 // 60 seconds
           })
 
-        return { ...prev, users: updatedUsers }
+        // Clean up stale typing indicators (older than 5 seconds)
+        const updatedTyping: Record<string, any> = {}
+        Object.entries(prev.live.typing || {}).forEach(([userId, indicator]) => {
+          if (indicator) {
+            const lastTyped = new Date(indicator.lastTyped).getTime()
+            if (currentTime - lastTyped < 5000) { // 5 seconds
+              updatedTyping[userId] = indicator
+            }
+          }
+        })
+
+        return { 
+          ...prev, 
+          users: updatedUsers,
+          live: {
+            ...prev.live,
+            typing: updatedTyping
+          }
+        }
       })
     }, 10000) // Every 10 seconds
 
     return () => clearInterval(interval)
   }, [currentUser, setState])
+
+  // Typing indicator helpers
+  const setTyping = useCallback((context: "new-task" | "edit-task", isTyping: boolean) => {
+    if (!currentUser) return
+    
+    setState((prev) => {
+      const newTyping = { ...prev.live.typing }
+      
+      if (isTyping) {
+        newTyping[currentUser.id] = {
+          userId: currentUser.id,
+          userName: currentUser.name,
+          userColor: currentUser.color,
+          isTyping: true,
+          lastTyped: new Date().toISOString(),
+          context
+        }
+      } else {
+        delete newTyping[currentUser.id]
+      }
+      
+      return {
+        ...prev,
+        live: {
+          ...prev.live,
+          typing: newTyping
+        }
+      }
+    })
+  }, [currentUser, setState])
+
+  const getTypingUsers = useCallback((context: "new-task" | "edit-task") => {
+    const now = Date.now()
+    const typingIndicators = Object.values(state.live.typing || {}).filter(indicator => {
+      if (!indicator || !indicator.isTyping || indicator.context !== context) return false
+      
+      // Filter out stale typing indicators (older than 3 seconds)
+      const lastTyped = new Date(indicator.lastTyped).getTime()
+      return (now - lastTyped) < 3000
+    })
+
+    return typingIndicators.map(indicator => 
+      presenceUsers.find(user => user.id === indicator.userId)
+    ).filter(Boolean) as User[]
+  }, [state.live.typing, presenceUsers])
 
   const value: TodoContextType = {
     state,
@@ -369,6 +437,9 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     startLiveEdit,
     pushLiveEdit,
     endLiveEdit,
+
+    setTyping,
+    getTypingUsers,
   }
 
   return <TodoContext.Provider value={value}>{children}</TodoContext.Provider>

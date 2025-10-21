@@ -21,6 +21,7 @@ export interface SharedState {
   users: User[] // Add users to shared state as fallback
   live: {
     edits: Record<string, LiveEdit> // keyed by editor userId
+    typing: Record<string, TypingIndicator> // keyed by userId
   }
   [key: string]: any // Index signature for Airstate compatibility
 }
@@ -34,6 +35,15 @@ export type LiveEdit = {
   initials: string
   color: string
   updatedAt: string
+}
+
+export type TypingIndicator = {
+  userId: string
+  userName: string
+  userColor: string
+  isTyping: boolean
+  lastTyped: string // ISO timestamp
+  context: "new-task" | "edit-task" // What they're typing for
 }
 
 

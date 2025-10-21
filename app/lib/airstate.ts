@@ -35,7 +35,10 @@ export const defaultSharedState: SharedState = {
     },
   ],
   users: [], // Add users array to shared state
-  live: { edits: {} },
+  live: { 
+    edits: {},
+    typing: {}
+  },
 }
 
 // Generate unique room key

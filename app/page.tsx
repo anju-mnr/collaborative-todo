@@ -8,6 +8,7 @@ import { TaskList } from "@/app/components/TaskList"
 import { AddTaskForm } from "@/app/components/AddTaskForm"
 import PresenceBar from "@/app/components/PresenceBar"
 import { ConnectionStatus } from "@/app/components/ConnectionStatus"
+import LiveCursors from "@/app/components/LiveCursors"
 const FRESH_MS = 30_000;
 const isFresh = (iso?: string) => !!iso && Date.now() - new Date(iso).getTime() < FRESH_MS;
 export default function Home() {
@@ -269,6 +270,9 @@ export default function Home() {
           />
         </div>
       </div>
+      
+      {/* Live Cursors Component */}
+      <LiveCursors />
     </div>
   )
 }

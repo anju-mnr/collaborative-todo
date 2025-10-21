@@ -24,6 +24,35 @@ textarea,
   }
 }
 
+/* Live cursor animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-10px) rotate(120deg); }
+  66% { transform: translateY(5px) rotate(240deg); }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+
+@keyframes cursorFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+
+.cursor-float {
+  animation: cursorFloat 2s ease-in-out infinite;
+}
+
+.cursor-sparkle {
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+
+.cursor-particle {
+  animation: float 3s ease-in-out infinite;
+}
+
 /* Prevent horizontal scroll on mobile */
 body {
   overflow-x: hidden;
